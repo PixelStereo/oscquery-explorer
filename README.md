@@ -1,2 +1,2 @@
-# pyossia-oscquery_device
-Python Test application for OSCQuery implementation in liossia 
+# pyossia-test-app
+Python application for testing liossia python implementation
