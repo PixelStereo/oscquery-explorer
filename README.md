@@ -8,4 +8,4 @@ You can download the latest release [here](https://github.com/PixelStereo/pyossi
     brew install pyqt5
     pip install qdarkstyle pyinstaller
     cd src
-    ./../build.sh
+    ./../scripts/build.sh
