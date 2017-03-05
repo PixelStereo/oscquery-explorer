@@ -11,4 +11,4 @@ cd $CURRENT
 # COMMAND LINE ARGUMENT OR REPO NAME
 NAME=${1:-$DEFAULTVALUE}
 echo "app will be build with the name :" $NAME
-pyinstaller --onefile --windowed -n $NAME main.py
+pyinstaller --onefile --windowed --icon=icon/icon.icns -n $NAME main.py
