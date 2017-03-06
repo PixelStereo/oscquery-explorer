@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import (QApplication, QBoxLayout, QCheckBox, QComboBox, QTr
         QDial, QGridLayout, QGroupBox, QHBoxLayout, QTreeWidget, QLabel, QScrollBar,
         QSlider, QDoubleSpinBox, QSpinBox, QStackedWidget, QWidget, QLineEdit)
 
+
 class QLabelSelectable(QLabel):
     """
     QLabel with a selection
@@ -37,29 +38,60 @@ class QLabelSelectable(QLabel):
 class MainWindow(QWidget):
     valueChanged = pyqtSignal(int)
 
+    datatypes = {'float':ossia.ValueType.Float, 'int':ossia.ValueType.Int, 'bool':ossia.ValueType.Bool, 'string':ossia.ValueType.String}
+
     def __init__(self):
         super(MainWindow, self).__init__()
-        # create an Ossia Device
-        self.local_device = ossia.LocalDevice("PyOssia Test App")
-        self.local_device.create_oscquery_server(3456, 5678)
         # create the layout
+        self.add_ossia_device("PyOssia Test App")
         self.createTree("Tree")
         self.createControls("Controls")
         self.createInspector("Inspector")
         layout = QHBoxLayout()
-        #layout.addWidget(self.treeGroup)
+        layout.addWidget(self.treeGroup)
         layout.addWidget(self.controlsGroup)
         #layout.addWidget(self.inspectorGroup)
         self.setLayout(layout)
         self.setWindowTitle("PyOssia Test App")
+        the_address = self.local_device.find_node('/')
+        params = [method for method in dir(the_address) if not method.startswith('__') ]
+        children = the_address.children()
+        #print(dir(children))
+        #print(len(children))
+        #print(children.pop_back())
+
+    def add_ossia_device(self, name):
+        # create an Ossia Device
+        self.local_device = ossia.LocalDevice(name)
+        oscquery = self.local_device.create_oscquery_server(3456, 5678)
+        if oscquery:
+            print('oscquery server started')
+        self.add_ossia_parameter('test/value/int')
+
+    def add_ossia_parameter(self, name, datatype='float', domain=None, unique=False, clipmode=None):
+        # create the node
+        param = self.local_device.add_node(name)
+        # create the parameter
+        datatype = self.datatypes[datatype]
+        param = param.create_address(datatype)
+        param.set_bounding_mode(ossia.BoundingMode.Free)
+        param.get_domain().set_min(ossia.Value(-1.0))
+        param.get_domain().set_max(ossia.Value(1.0))
+        def int_handler(value):
+            # push a value
+            param.push_value(ossia.Value(value))
+        # attach a callback function to the boolean address
+        #param.add_callback(param.update_model(value.get()))
+        return param
 
     def createTree(self, title):
         self.treeGroup = QGroupBox(title)
         self.tree = QTreeWidget()
-        strings = [1, 2, 3]
+        self.tree.header().hide() 
+        strings = ['uno', 'dos', 'tres']
         l = []  # list of QTreeWidgetItem to add
         for i in strings:
-            l.append(QTreeWidgetItem(i))  # create QTreeWidgetItem's and append them
+            l.append(QTreeWidgetItem([i]))  # create QTreeWidgetItem's and append them
         self.tree.addTopLevelItems(l)  # add everything to the tree
         Layout = QGridLayout()
         Layout.addWidget(self.tree, 0, 0)
@@ -69,38 +101,28 @@ class MainWindow(QWidget):
 
     def createControls(self, title):
         self.controlsGroup = QGroupBox(title)
-        self.controlsGroup.setCheckable(True)
-        # int
-        def int_handler(value):
-            # push a value
-            int_address.push_value(ossia.Value(value))
+        #self.controlsGroup.setCheckable(True)
 
+
+        # Create a QGroupBox for each parameter
+        # if bool = checkbox
+        # if float / int = slider
+        # if string = qlineedit + combo
+
+        # int
         self.an_int_label = QLabelSelectable('/test/value/int')
         self.an_int = QSlider(Qt.Horizontal)
         self.an_int.setFocusPolicy(Qt.StrongFocus)
         self.an_int.setTickPosition(QSlider.TicksBothSides)
         self.an_int.setTickInterval(10)
+        self.an_int.setRange(0, 100)
         self.an_int.setSingleStep(1)
         self.an_int_box = QSpinBox()
+        self.an_int_box.setRange(0, 100)
         self.an_int_box.valueChanged.connect(self.an_int.setValue)
-        self.an_int_box.valueChanged.connect(int_handler)
+        #self.an_int_box.valueChanged.connect(int_handler)
         self.an_int.valueChanged.connect(self.an_int_box.setValue)
-        self.an_int.valueChanged.connect(int_handler)
-        # create the node
-        int_node = self.local_device.add_node("/test/value/int")
-        # create the parameter
-        int_address = int_node.create_address(ossia.ValueType.Int)
-
-        # attach a callback function to the boolean address
-        def int_value_callback(value):
-            self.an_int.setValue(value.get())
-
-        int_address.add_callback(int_value_callback)
-        # push a value
-        int_address.push_value(ossia.Value(27))
-
-
-
+        #self.an_int.valueChanged.connect(int_handler)
 
 
         # float
