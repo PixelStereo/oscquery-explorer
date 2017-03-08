@@ -12,7 +12,12 @@ such as new / open / save / save as…
 import os
 import sys
 
-import ossia_python as ossia
+sys.path.append(os.path.abspath('../3rdParty/pyossia'))
+print(sys.path[-1])
+print()
+from pyossia import my_device
+from pyossia.constants import datatypes
+from pyossia import ossia_python as ossia
 
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt, QSignalMapper, QPoint, QSize, QSettings, QFileInfo
@@ -23,6 +28,9 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import (QApplication, QBoxLayout, QCheckBox, QComboBox, QTreeWidgetItem,
         QDial, QGridLayout, QGroupBox, QHBoxLayout, QTreeWidget, QLabel, QScrollBar,
         QSlider, QDoubleSpinBox, QSpinBox, QStackedWidget, QWidget, QLineEdit)
+from PyQt5.QtCore import QAbstractItemModel, QFile, QIODevice, QModelIndex, Qt
+from PyQt5.QtWidgets import QApplication, QTreeView
+from PyQt5.QtGui import QStandardItemModel, QStandardItem 
 
 
 class QLabelSelectable(QLabel):
@@ -33,18 +41,39 @@ class QLabelSelectable(QLabel):
         super(QLabelSelectable, self).__init__(*args, **kwargs)
 
         def mouseReleaseEvent(self, event):
-            print "clicked"
-        
+            print("clicked")
+
+class TreeModel(QStandardItemModel):
+    """
+    docstring for TreeModel
+    """
+    def __init__(self, root):
+        super(TreeModel, self).__init__()
+        self.root = root
+        self.root_item = QStandardItem(str(root))
+        self.iterate_children(root, self.root_item)
+
+    def iterate_children(self, node, parent):
+        """
+        recursive method to explore children until the end
+        """
+        for nod in node.children():
+            child = QStandardItem(str(nod).split('/')[-1])
+            parent.appendRow(child)
+            self.iterate_children(nod, child)
+        self.appendRow(self.root_item)
+
 class MainWindow(QWidget):
     valueChanged = pyqtSignal(int)
 
-    datatypes = {'float':ossia.ValueType.Float, 'int':ossia.ValueType.Int, 'bool':ossia.ValueType.Bool, 'string':ossia.ValueType.String}
-
     def __init__(self):
         super(MainWindow, self).__init__()
-        # create the layout
-        self.add_ossia_device("PyOssia Test App")
-        self.createTree("Tree")
+        # bound to the embedded test local device
+        # it is created when importing pyossia
+        self.local_device = my_device
+        # create the Remote Device
+        oscquery_device = ossia.OSCQueryDevice("OscQuery explorer on 5678", "ws://127.0.0.1:5678", 9998)
+        self.createTree("Remote Application Viewer")
         self.createControls("Controls")
         self.createInspector("Inspector")
         layout = QHBoxLayout()
@@ -55,24 +84,18 @@ class MainWindow(QWidget):
         self.setWindowTitle("PyOssia Test App")
         the_address = self.local_device.find_node('/')
         params = [method for method in dir(the_address) if not method.startswith('__') ]
+        print(the_address)
+        print(dir(the_address))
         children = the_address.children()
         #print(dir(children))
         #print(len(children))
         #print(children.pop_back())
 
-    def add_ossia_device(self, name):
-        # create an Ossia Device
-        self.local_device = ossia.LocalDevice(name)
-        oscquery = self.local_device.create_oscquery_server(3456, 5678)
-        if oscquery:
-            print('oscquery server started')
-        self.add_ossia_parameter('test/value/int')
-
     def add_ossia_parameter(self, name, datatype='float', domain=None, unique=False, clipmode=None):
         # create the node
         param = self.local_device.add_node(name)
         # create the parameter
-        datatype = self.datatypes[datatype]
+        datatype = datatypes[datatype]
         param = param.create_address(datatype)
         param.set_bounding_mode(ossia.BoundingMode.Free)
         param.get_domain().set_min(ossia.Value(-1.0))
@@ -84,17 +107,18 @@ class MainWindow(QWidget):
         #param.add_callback(param.update_model(value.get()))
         return param
 
+
+
     def createTree(self, title):
         self.treeGroup = QGroupBox(title)
-        self.tree = QTreeWidget()
-        self.tree.header().hide() 
-        strings = ['uno', 'dos', 'tres']
-        l = []  # list of QTreeWidgetItem to add
-        for i in strings:
-            l.append(QTreeWidgetItem([i]))  # create QTreeWidgetItem's and append them
-        self.tree.addTopLevelItems(l)  # add everything to the tree
+        view = QTreeView() 
+        root = my_device.get_root_node()
+        model = TreeModel(root)
+        view = QTreeView()
+        view.setModel(model)
+        view.expandAll()
         Layout = QGridLayout()
-        Layout.addWidget(self.tree, 0, 0)
+        Layout.addWidget(view, 0, 0)
         self.treeGroup.setLayout(Layout)
         self.treeGroup.setMinimumWidth(300)
         self.treeGroup.setMinimumHeight(300)
