@@ -7,6 +7,8 @@ main script
 
 import sys
 from window import MainWindow
+from explorer import ZeroConfListener
+from zeroconf import ServiceBrowser, Zeroconf
 from PyQt5.QtCore import QFileInfo
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
@@ -34,5 +36,9 @@ if __name__ == "__main__":
     path = root+'/icon/icon.png'
     app.setWindowIcon(QIcon(path))
     mainWin = MainWindow()
+    zeroconf = Zeroconf()
+    listener = ZeroConfListener()
+    browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", listener)
     mainWin.show()
     sys.exit(app.exec_())
+    zeroconf.close()

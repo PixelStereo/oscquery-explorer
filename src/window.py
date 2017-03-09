@@ -63,6 +63,9 @@ class TreeModel(QStandardItemModel):
             self.iterate_children(nod, child)
         self.appendRow(self.root_item)
 
+
+
+
 class MainWindow(QWidget):
     valueChanged = pyqtSignal(int)
 
@@ -90,6 +93,8 @@ class MainWindow(QWidget):
         #print(dir(children))
         #print(len(children))
         #print(children.pop_back())
+
+
 
     def add_ossia_parameter(self, name, datatype='float', domain=None, unique=False, clipmode=None):
         # create the node
