@@ -12,6 +12,9 @@ such as new / open / save / save as…
 import os
 import sys
 
+from explorer import DeviceModel
+from zeroconf import ServiceBrowser, Zeroconf
+
 sys.path.append(os.path.abspath('../3rdParty/pyossia'))
 print(sys.path[-1])
 print()
@@ -21,11 +24,11 @@ from pyossia import ossia_python as ossia
 
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt, QSignalMapper, QPoint, QSize, QSettings, QFileInfo
-from PyQt5.QtWidgets import QMainWindow, QToolBar, QAction, QMdiArea, \
+from PyQt5.QtWidgets import QMainWindow, QToolBar, QAction, QMdiArea, QListView, \
                             QApplication, QMessageBox, QFileDialog, QWidget
 
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import (QApplication, QBoxLayout, QCheckBox, QComboBox, QTreeWidgetItem,
+from PyQt5.QtWidgets import (QApplication, QBoxLayout, QVBoxLayout, QCheckBox, QComboBox, QTreeWidgetItem,
         QDial, QGridLayout, QGroupBox, QHBoxLayout, QTreeWidget, QLabel, QScrollBar,
         QSlider, QDoubleSpinBox, QSpinBox, QStackedWidget, QWidget, QLineEdit)
 from PyQt5.QtCore import QAbstractItemModel, QFile, QIODevice, QModelIndex, Qt
@@ -76,12 +79,14 @@ class MainWindow(QWidget):
         self.local_device = my_device
         # create the Remote Device
         oscquery_device = ossia.OSCQueryDevice("OscQuery explorer on 5678", "ws://127.0.0.1:5678", 9998)
+        self.zero_conf_explorer("oscjson apps")
         self.createTree("Remote Application Viewer")
         self.createControls("Controls")
         self.createInspector("Inspector")
-        layout = QHBoxLayout()
-        layout.addWidget(self.treeGroup)
-        layout.addWidget(self.controlsGroup)
+        layout = QGridLayout()
+        layout.addWidget(self.zero_conf_explorer_group, 0, 0)
+        layout.addWidget(self.treeGroup, 0, 1)
+        layout.addWidget(self.controlsGroup, 0, 2)
         #layout.addWidget(self.inspectorGroup)
         self.setLayout(layout)
         self.setWindowTitle("PyOssia Test App")
@@ -94,6 +99,23 @@ class MainWindow(QWidget):
         #print(len(children))
         #print(children.pop_back())
 
+    def zero_conf_explorer(self, name):
+    	self.zero_conf_explorer_group = QGroupBox()
+    	self.zero_conf_explorer_group.setTitle(name)
+    	self.zero_conf_explorer_view = QListView()
+        Layout = QGridLayout()
+        Layout.addWidget(self.zero_conf_explorer_view, 0, 0)
+        self.zero_conf_explorer_group.setLayout(Layout)
+        self.zero_conf_explorer_group.setMinimumWidth(100)
+        self.zero_conf_explorer_group.setMinimumHeight(300)
+        self.device_model = DeviceModel()
+        self.device_view = QListView()
+        self.device_view.setModel(self.device_model)
+        self.device_view.setCurrentIndex(self.device_model.index(0))
+        zeroconf = Zeroconf()
+        browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", self.device_model)
+        #self.zero_conf_explorer_group.setMaximumWidth(200)
+        #self.zero_conf_explorer_group.setMaximumHeight(600)
 
 
     def add_ossia_parameter(self, name, datatype='float', domain=None, unique=False, clipmode=None):
