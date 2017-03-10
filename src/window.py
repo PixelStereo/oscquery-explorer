@@ -12,7 +12,7 @@ such as new / open / save / save as…
 import os
 import sys
 
-from explorer import DeviceModel
+from explorer import ZeroConfListener
 from zeroconf import ServiceBrowser, Zeroconf
 
 sys.path.append(os.path.abspath('../3rdParty/pyossia'))
@@ -23,7 +23,9 @@ from pyossia.constants import datatypes
 from pyossia import ossia_python as ossia
 
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import Qt, QSignalMapper, QPoint, QSize, QSettings, QFileInfo
+
+
+from PyQt5.QtCore import Qt, QSignalMapper, QPoint, QSize, QSettings, QFileInfo, QModelIndex
 from PyQt5.QtWidgets import QMainWindow, QToolBar, QAction, QMdiArea, QListView, \
                             QApplication, QMessageBox, QFileDialog, QWidget
 
@@ -80,13 +82,13 @@ class MainWindow(QWidget):
         # create the Remote Device
         oscquery_device = ossia.OSCQueryDevice("OscQuery explorer on 5678", "ws://127.0.0.1:5678", 9998)
         self.zero_conf_explorer("oscjson apps")
-        self.createTree("Remote Application Viewer")
-        self.createControls("Controls")
-        self.createInspector("Inspector")
+        #self.createTree("Remote Application Viewer")
+        #self.createControls("Controls")
+        #self.createInspector("Inspector")
         layout = QGridLayout()
-        layout.addWidget(self.zero_conf_explorer_group, 0, 0)
-        layout.addWidget(self.treeGroup, 0, 1)
-        layout.addWidget(self.controlsGroup, 0, 2)
+        layout.addWidget(self.zeroconf_group, 0, 0)
+        #layout.addWidget(self.treeGroup, 0, 1)
+        #layout.addWidget(self.controlsGroup, 0, 2)
         #layout.addWidget(self.inspectorGroup)
         self.setLayout(layout)
         self.setWindowTitle("PyOssia Test App")
@@ -96,23 +98,38 @@ class MainWindow(QWidget):
         #print(dir(children))
         #print(len(children))
         #print(children.pop_back())
+    def on_item_changed(self, item):
+        print(item)
 
     def zero_conf_explorer(self, name):
-        self.zero_conf_explorer_group = QGroupBox()
-        self.zero_conf_explorer_group.setTitle(name)
-        self.zero_conf_explorer_view = QListView()
-        Layout = QGridLayout()
-        Layout.addWidget(self.zero_conf_explorer_view, 0, 0)
-        self.zero_conf_explorer_group.setLayout(Layout)
-        self.zero_conf_explorer_group.setMinimumWidth(100)
-        self.zero_conf_explorer_group.setMinimumHeight(300)
-        self.device_model = DeviceModel()
+        # create the view
         self.device_view = QListView()
+        # add the view to the layout
+        # set layout and group
+        self.zeroconf_group = QGroupBox(name)
+        Layout = QGridLayout()
+        self.zeroconf_group.setLayout(Layout)
+        Layout.addWidget(self.device_view, 0, 0)
+        # create the model
+        self.device_model = QStandardItemModel()
+        # create items
+        self.zeroconf_group.setMinimumWidth(100)
+        self.zeroconf_group.setMinimumHeight(300)
+        self.device_model.itemChanged.connect(self.on_item_changed)
         self.device_view.setModel(self.device_model)
+        self.device_view.show()
+
+
+
+        def on_treeView_clicked(self, index):
+            print 'selected item index found at %s with data: %s' % (index.row(), index.data().toString())
+
+
         zeroconf = Zeroconf()
-        browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", self.device_model)
-        #self.zero_conf_explorer_group.setMaximumWidth(200)
-        #self.zero_conf_explorer_group.setMaximumHeight(600)
+        listener = ZeroConfListener(self.device_model)
+        browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", listener)
+        #self.zero_conf_group.setMaximumWidth(200)
+        #self.zero_conf_group.setMaximumHeight(600)
 
 
     def add_ossia_parameter(self, name, datatype='float', domain=None, unique=False, clipmode=None):
