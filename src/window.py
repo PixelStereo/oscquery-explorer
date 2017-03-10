@@ -92,17 +92,15 @@ class MainWindow(QWidget):
         self.setWindowTitle("PyOssia Test App")
         the_address = self.local_device.find_node('/')
         params = [method for method in dir(the_address) if not method.startswith('__') ]
-        print(the_address)
-        print(dir(the_address))
         children = the_address.children()
         #print(dir(children))
         #print(len(children))
         #print(children.pop_back())
 
     def zero_conf_explorer(self, name):
-    	self.zero_conf_explorer_group = QGroupBox()
-    	self.zero_conf_explorer_group.setTitle(name)
-    	self.zero_conf_explorer_view = QListView()
+        self.zero_conf_explorer_group = QGroupBox()
+        self.zero_conf_explorer_group.setTitle(name)
+        self.zero_conf_explorer_view = QListView()
         Layout = QGridLayout()
         Layout.addWidget(self.zero_conf_explorer_view, 0, 0)
         self.zero_conf_explorer_group.setLayout(Layout)
@@ -111,7 +109,6 @@ class MainWindow(QWidget):
         self.device_model = DeviceModel()
         self.device_view = QListView()
         self.device_view.setModel(self.device_model)
-        self.device_view.setCurrentIndex(self.device_model.index(0))
         zeroconf = Zeroconf()
         browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", self.device_model)
         #self.zero_conf_explorer_group.setMaximumWidth(200)
