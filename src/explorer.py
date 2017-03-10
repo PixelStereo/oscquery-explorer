@@ -22,7 +22,9 @@ class ZeroConfListener(object):
         info = zeroconf.get_service_info(type, name)
         name = name.split('.' + type)[0]
         port = info.port
-        device = name + ':' + str(port)
-        device_item = QStandardItem(name)
+        server = info.server
+        device = name + '@' + server + ':' + str(port)
+        print(info)
+        device_item = QStandardItem(device)
         print('ADDED ' + str(device))
         self.device_model.appendRow(device_item)

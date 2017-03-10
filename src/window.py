@@ -22,20 +22,11 @@ from pyossia import my_device
 from pyossia.constants import datatypes
 from pyossia import ossia_python as ossia
 
-from PyQt5.QtGui import QKeySequence
 
 
-from PyQt5.QtCore import Qt, QSignalMapper, QPoint, QSize, QSettings, QFileInfo, QModelIndex
-from PyQt5.QtWidgets import QMainWindow, QToolBar, QAction, QMdiArea, QListView, \
-                            QApplication, QMessageBox, QFileDialog, QWidget
-
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import (QApplication, QBoxLayout, QVBoxLayout, QCheckBox, QComboBox, QTreeWidgetItem,
-        QDial, QGridLayout, QGroupBox, QHBoxLayout, QTreeWidget, QLabel, QScrollBar,
-        QSlider, QDoubleSpinBox, QSpinBox, QStackedWidget, QWidget, QLineEdit)
-from PyQt5.QtCore import QAbstractItemModel, QFile, QIODevice, QModelIndex, Qt
-from PyQt5.QtWidgets import QApplication, QTreeView
-from PyQt5.QtGui import QStandardItemModel, QStandardItem 
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 
 
 class QLabelSelectable(QLabel):
@@ -54,22 +45,24 @@ class TreeModel(QStandardItemModel):
     """
     def __init__(self, root):
         super(TreeModel, self).__init__()
-        self.root = root
-        self.root_item = QStandardItem(str(root))
-        self.iterate_children(root, self.root_item)
+        self.root_item = QStandardItem('/')
+        #self.iterate_children(root, self.root_item)
 
     def iterate_children(self, node, parent):
         """
         recursive method to explore children until the end
         """
+        self.clear()
+        self.root_item = QStandardItem(str(node))
+        print('------------------------------------')
+        print('------------------------------------')
+        print(node, parent)
         for nod in node.children():
+            print(str(nod), parent)
             child = QStandardItem(str(nod).split('/')[-1])
             parent.appendRow(child)
             self.iterate_children(nod, child)
         self.appendRow(self.root_item)
-
-
-
 
 class MainWindow(QWidget):
     valueChanged = pyqtSignal(int)
@@ -79,34 +72,57 @@ class MainWindow(QWidget):
         # bound to the embedded test local device
         # it is created when importing pyossia
         self.local_device = my_device
-        # create the Remote Device
-        oscquery_device = ossia.OSCQueryDevice("OscQuery explorer on 5678", "ws://127.0.0.1:5678", 9998)
         self.zero_conf_explorer("oscjson apps")
-        #self.createTree("Remote Application Viewer")
-        #self.createControls("Controls")
-        #self.createInspector("Inspector")
+        self.createTree("Remote Application Viewer")
+        self.createControls("Controls")
+        self.createInspector("Inspector")
         layout = QGridLayout()
         layout.addWidget(self.zeroconf_group, 0, 0)
-        #layout.addWidget(self.treeGroup, 0, 1)
-        #layout.addWidget(self.controlsGroup, 0, 2)
-        #layout.addWidget(self.inspectorGroup)
+        layout.addWidget(self.treeGroup, 0, 1)
+        layout.addWidget(self.controlsGroup, 0, 2)
+        layout.addWidget(self.inspectorGroup)
         self.setLayout(layout)
         self.setWindowTitle("PyOssia Test App")
         the_address = self.local_device.find_node('/')
         params = [method for method in dir(the_address) if not method.startswith('__') ]
         children = the_address.children()
+        self.oscquery_device  = None
         #print(dir(children))
         #print(len(children))
         #print(children.pop_back())
-    def on_item_changed(self, item):
-        print(item)
+
+
+    def readSettings(self):
+        """read the settings"""
+        settings = QSettings('Pixel Stereo', 'lekture')
+        pos = settings.value('pos', QPoint(200, 200))
+        size = settings.value('size', QSize(1000, 650))
+        self.move(pos)
+        self.resize(size)
+
+    def writeSettings(self):
+        """write settings"""
+        settings = QSettings('Pixel Stereo', 'pyossia-test-app')
+        settings.setValue('pos', self.pos())
+        settings.setValue('size', self.size())
 
     def device_selection_updated(self, *args, **kwargs):
         index = self.device_selection_model.selectedIndexes()
+        if self.oscquery_device:
+            del self.oscquery_device
         for ind in index:
             print(ind.row(), ind.data())
+            # create the Remote Device
+            try:
+                self.oscquery_device = ossia.OSCQueryDevice("OscQuery explorer on 5678", "ws://127.0.0.1:5678", 9998)
+                self.current_model.iterate_children(self.oscquery_device.get_root_node(), self.current_model.root_item)
+            except():
+                print('cannot make connection')
 
     def zero_conf_explorer(self, name):
+        """
+        create a zeroconf qgroubbox with a qlist view 
+        """
         # create the view
         self.device_view = QListView()
         # add the view to the layout
@@ -114,23 +130,21 @@ class MainWindow(QWidget):
         self.zeroconf_group = QGroupBox(name)
         Layout = QGridLayout()
         self.zeroconf_group.setLayout(Layout)
+        self.zeroconf_group.setMinimumWidth(100)
+        self.zeroconf_group.setMinimumHeight(300)
         Layout.addWidget(self.device_view, 0, 0)
         # create the model
         self.device_model = QStandardItemModel()
-        # create items
-        self.zeroconf_group.setMinimumWidth(100)
-        self.zeroconf_group.setMinimumHeight(300)
-        self.device_model.itemChanged.connect(self.on_item_changed)
+        # link model to the view
         self.device_view.setModel(self.device_model)
+        # set selection
         self.device_selection_model = self.device_view.selectionModel()
-        print('selection')
         self.device_view.selectionModel().selectionChanged.connect(self.device_selection_updated)
+        # start zeroconf services
         zeroconf = Zeroconf()
+        # start the callback, it will create items
         listener = ZeroConfListener(self.device_model)
         browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", listener)
-        #self.zero_conf_group.setMaximumWidth(200)
-        #self.zero_conf_group.setMaximumHeight(600)
-
 
     def add_ossia_parameter(self, name, datatype='float', domain=None, unique=False, clipmode=None):
         # create the node
@@ -148,18 +162,15 @@ class MainWindow(QWidget):
         #param.add_callback(param.update_model(value.get()))
         return param
 
-
-
     def createTree(self, title):
         self.treeGroup = QGroupBox(title)
-        view = QTreeView() 
-        root = my_device.get_root_node()
-        model = TreeModel(root)
-        view = QTreeView()
-        view.setModel(model)
-        view.expandAll()
+        self.current_view = QTreeView() 
+        root = 'None'
+        self.current_model = TreeModel(root)
+        self.current_view.setModel(self.current_model)
+        self.current_view.expandAll()
         Layout = QGridLayout()
-        Layout.addWidget(view, 0, 0)
+        Layout.addWidget(self.current_view, 0, 0)
         self.treeGroup.setLayout(Layout)
         self.treeGroup.setMinimumWidth(300)
         self.treeGroup.setMinimumHeight(300)
