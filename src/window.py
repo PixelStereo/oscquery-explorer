@@ -101,6 +101,11 @@ class MainWindow(QWidget):
     def on_item_changed(self, item):
         print(item)
 
+    def device_selection_updated(self, *args, **kwargs):
+        index = self.device_selection_model.selectedIndexes()
+        for ind in index:
+            print(ind.row(), ind.data())
+
     def zero_conf_explorer(self, name):
         # create the view
         self.device_view = QListView()
@@ -117,14 +122,9 @@ class MainWindow(QWidget):
         self.zeroconf_group.setMinimumHeight(300)
         self.device_model.itemChanged.connect(self.on_item_changed)
         self.device_view.setModel(self.device_model)
-        self.device_view.show()
-
-
-
-        def on_treeView_clicked(self, index):
-            print 'selected item index found at %s with data: %s' % (index.row(), index.data().toString())
-
-
+        self.device_selection_model = self.device_view.selectionModel()
+        print('selection')
+        self.device_view.selectionModel().selectionChanged.connect(self.device_selection_updated)
         zeroconf = Zeroconf()
         listener = ZeroConfListener(self.device_model)
         browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", listener)
