@@ -16,17 +16,15 @@ from explorer import ZeroConfListener
 from zeroconf import ServiceBrowser, Zeroconf
 
 sys.path.append(os.path.abspath('../3rdParty/pyossia'))
-print(sys.path[-1])
-print()
+
 from pyossia import my_device
 from pyossia.constants import datatypes
 from pyossia import ossia_python as ossia
 
-
-
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
+from PyQt5.QtCore import QSettings, pyqtSignal
+from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.Qt import *
 
 
 class QLabelSelectable(QLabel):
