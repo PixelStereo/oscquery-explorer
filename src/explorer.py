@@ -7,16 +7,16 @@ from PyQt5.QtGui import QStandardItem, QStandardItemModel
         
 class ZeroConfListener(object):
     def __init__(self, *args, **kwargs):
-        print(args[0])
+        #print(args[0])
         self.device_model = args[0]
 
     def remove_service(self, zeroconf, type, name):
         name = name.split('.' + type)[0]
         print('BYE BYE ' + name)
         for row in range(0, self.device_model.rowCount()+1):
-            print(row, name, self.device_model.match(row))
-            if self.device_model.data(QModelIndex(), row) == name:
-                self.device_model.removeRow(row)
+            #if self.device.model.item(row).data() == name:
+            self.device_model.removeRow(row)
+        # TODO : SEND A SIGNAL to CLEAR thE tHREE
 
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
