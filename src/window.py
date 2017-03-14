@@ -365,9 +365,8 @@ class MainWindow(QWidget):
         string_address.add_callback(string_value_callback)
         # push a value
         string_address.push_value(ossia.Value("trap ~± )çà!èàç!67[ÛåÊ’√∏Ô‰ML"))
-        """
         controlsLayout = QGridLayout()
-        """
+        
         controlsLayout.addWidget(self.an_int_label, 0, 0)
         controlsLayout.addWidget(self.an_int, 0, 1)
         controlsLayout.addWidget(self.an_int_box, 0, 2)
@@ -378,7 +377,7 @@ class MainWindow(QWidget):
         controlsLayout.addWidget(self.a_bool, 2, 1)
         controlsLayout.addWidget(self.a_string_label, 3, 0)
         controlsLayout.addWidget(self.a_string, 3, 1)
-        """
         self.controlsGroup.setLayout(controlsLayout)
         self.controlsGroup.setMinimumWidth(300)
         self.controlsGroup.setMinimumHeight(300)
+        """
