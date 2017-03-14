@@ -39,5 +39,6 @@ if __name__ == "__main__":
     app.setWindowIcon(QIcon(path))
     mainWin = MainWindow()
     mainWin.show()
+    mainWin.setFixedSize(900, 400)
     sys.exit(app.exec_())
     zeroconf.close()
