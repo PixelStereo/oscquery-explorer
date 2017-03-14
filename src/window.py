@@ -188,7 +188,13 @@ class MainWindow(QWidget):
             print(ind.row(), ind.data())
             # create the Remote Device
             try:
-                oscquery_device = pyossia.ossia.OSCQueryDevice("OscQuery explorer on 5678", "ws://127.0.0.1:5678", 9998)
+                data = ind.data().split('@')
+                name = data[0]
+                target = data[1].split(':')
+                port = int(target[1])
+                target = target[0]
+                self.current_model.clear()
+                oscquery_device = pyossia.ossia.OSCQueryDevice("Explorer for " + name, "http://" + target + ':' + str(port), 9998)
                 oscquery_device.update()
                 # please make a list of models and check if it already exists
                 self.current_model.device = oscquery_device
