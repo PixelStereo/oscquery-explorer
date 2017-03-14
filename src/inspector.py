@@ -11,11 +11,9 @@ such as new / open / save / save as…
 
 import os
 import sys
-from zeroconf import ServiceBrowser, Zeroconf
 
 import pyossia
 
-from explorer import ZeroConfListener, TreeModel
 
 from PyQt5.QtCore import QSettings, pyqtSignal
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QHBoxLayout, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
@@ -46,8 +44,9 @@ class FloatUI(ParamUI):
 
 class Inspector(QGroupBox):
     """docstring for Inspector"""
-    def __init__(self, name):
+    def __init__(self, name, model=None):
         super(Inspector, self).__init__()
+        self.devices_model = model
         self.name = name
         self.setEnabled(False)
         self.repetitions = QCheckBox("Unique (filter repetitions)")
@@ -75,19 +74,27 @@ class Inspector(QGroupBox):
         Layout.addWidget(self.bounding_mode, 3, 1)
         Layout.addWidget(self.repetitions, 4, 0)
         self.setLayout(Layout)
-        #self.setMinimumWidth(300)
-        #self.setMinimumHeight(300)
+        #self.setFixedSize(300, 300)
 
-    def inspect(self, node):
+
+    def inspect(self, modelIndex):
         # at this point, we are sure node is a TreeItem
         # is it a node or a param?
-        address = node.get_address()
-        if 'clone_value' in dir(address):
-            self.id.setText(str(node) + ' is a param \n' + str(address.clone_value().get()))
-        else:
-            self.id.setText(str(node) + ' : is a node')
-        #self.value.setText(node.get_address().get())
-        self.setEnabled(True)
+        item = self.devices_model.itemFromIndex(modelIndex)
+        if item.__class__.__name__ == 'TreeItem':
+            try: 
+                node = item.node
+                address = node.get_address()
+                if address:
+                    self.id.setText(str(node) + ' is a param \n' + str(address.clone_value().get()))
+                    value = address.clone_value().get()
+                else:
+                    self.id.setText(str(node) + ' : is a node')
+                self.setEnabled(True)
+            except Exception as e:
+                print('problem', e)
+
+
 
         
 
