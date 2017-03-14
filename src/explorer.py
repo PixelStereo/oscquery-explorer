@@ -7,7 +7,6 @@ from PyQt5.QtGui import QStandardItem, QStandardItemModel
         
 class ZeroConfListener(object):
     def __init__(self, *args, **kwargs):
-        #print(args[0])
         self.device_model = args[0]
 
     def remove_service(self, zeroconf, type, name):
