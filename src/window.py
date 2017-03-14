@@ -15,8 +15,6 @@ import sys
 from explorer import ZeroConfListener
 from zeroconf import ServiceBrowser, Zeroconf
 
-sys.path.append(os.path.abspath('../3rdParty/pyossia'))
-
 import pyossia
 
 
@@ -113,7 +111,6 @@ class Inspector(QGroupBox):
         self.datatype.addItem("Tuple")
         
         self.domain = QLineEdit()
-        print(dir(pyossia.ossia.BoundingMode))
         self.bounding_mode = QComboBox()
         self.bounding_mode.addItem('Clip')
 
