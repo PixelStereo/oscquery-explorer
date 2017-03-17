@@ -15,4 +15,4 @@ case "$TRAVIS_OS_NAME" in
   ;;
 esac
 
-sudo pip3 install pyinstaller
+sudo pip3 install pyinstaller pyqt5 zeroconf
