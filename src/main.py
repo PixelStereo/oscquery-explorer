@@ -4,11 +4,7 @@
 """
 main script
 """
-# append ossia_python.so and pyossia module paths
-# we will use pip later on
-import sys, os
-sys.path.append(os.path.abspath('../../libossia/build/'))
-sys.path.append(os.path.abspath('../../libossia/OSSIA/ossia-python/'))
+import sys
 
 from window import MainWindow
 from PyQt5.QtCore import QFileInfo
