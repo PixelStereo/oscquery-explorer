@@ -7,6 +7,7 @@ cd src
 source ../scripts/split_repo_slug.sh
 
 ../scripts/build.sh ${REPO}_${TRAVIS_TAG}
+
 cd dist 
 
 case "$TRAVIS_OS_NAME" in
