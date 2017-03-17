@@ -2,8 +2,6 @@
 
 set -v
 
-pip3 install PyQt5
-
 cd src
 
 source ../scripts/split_repo_slug.sh
