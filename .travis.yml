@@ -33,7 +33,7 @@ deploy:
   provider: releases
   skip_cleanup: true
   api_key:
-    secure: "${SECURE_KEY}"
+    secure: ${SECURE_KEY}
   file:
   - "src/dist/${REPO}_${TRAVIS_TAG}_${TRAVIS_OS_NAME}.zip"
   on:
