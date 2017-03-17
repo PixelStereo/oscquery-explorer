@@ -3,7 +3,7 @@
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QVariant, Qt
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidget
+from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidget, QMenu
 
 from zeroconf import ServiceBrowser, Zeroconf
 import pyossia
@@ -97,7 +97,11 @@ class ZeroConfExplorer(QWidget):
             name = 'OSCJSON thru TCP Explorer'
         # create the view
         self.devices_view = QTreeView()
+        # Hide Useless Header
         self.devices_view.header().hide()
+        # create right-click menu
+        self.devices_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.devices_view.customContextMenuRequested.connect(self.contextual_menu)
         # create the model
         self.devices_model = QStandardItemModel()
         # link model to the view
@@ -123,6 +127,24 @@ class ZeroConfExplorer(QWidget):
         # start the callback, it will create items
         listener = ZeroConfListener(self.devices_model)
         browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", listener)
+
+    def contextual_menu(self, position):
+    
+        indexes = self.devices_view.selectedIndexes()
+        if len(indexes) > 0:
+        
+            level = 0
+            index = indexes[0]
+            while index.parent().isValid():
+                index = index.parent()
+                level += 1
+        node = self.devices_model.itemFromIndex(index)
+        menu = QMenu()
+        if level == 0:
+            menu.addAction("Refresh Device Namespace", node.update)
+        elif level > 0:
+            menu.addAction("Refresh Node", node.update)
+        menu.exec_(self.devices_view.viewport().mapToGlobal(position))
 
     def selection_updated(self, *args, **kwargs):
         """
