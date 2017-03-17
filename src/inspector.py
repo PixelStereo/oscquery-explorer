@@ -67,12 +67,18 @@ class Inspector(QGroupBox):
         self.id = QLabel()
         self.value = QLabel()
         Layout = QGridLayout()
-        Layout.addWidget(self.id, 0, 0)
-        Layout.addWidget(self.value, 0, 1)
-        Layout.addWidget(self.datatype, 2, 0)
-        Layout.addWidget(self.domain, 3, 0)
-        Layout.addWidget(self.bounding_mode, 3, 1)
-        Layout.addWidget(self.repetitions, 4, 0)
+        Layout.addWidget(QLabel('Address'), 0, 0)
+        Layout.addWidget(self.id, 0, 1)
+        Layout.addWidget(QLabel('Value'), 1, 0)
+        Layout.addWidget(self.value, 1, 1)
+        Layout.addWidget(QLabel('Datatype'), 2, 0)
+        Layout.addWidget(self.datatype, 2, 1)
+        Layout.addWidget(QLabel('Domain'), 3, 0)
+        Layout.addWidget(self.domain, 3, 1)
+        Layout.addWidget(QLabel('ClipMode'), 4, 0)
+        Layout.addWidget(self.bounding_mode, 4, 1)
+        Layout.addWidget(QLabel('Repetitions'), 5, 0)
+        Layout.addWidget(self.repetitions, 5, 1)
         self.setLayout(Layout)
         #self.setFixedSize(300, 300)
 
@@ -86,11 +92,13 @@ class Inspector(QGroupBox):
                 node = item.node
                 address = node.get_address()
                 if address:
-                    self.id.setText(str(node) + ' is a param \n' + str(address.clone_value().get()))
+                    self.id.setText(str(node) + ' is a param')
+                    self.value.setText(str(address.clone_value().get()))
                     value = address.clone_value().get()
+                    self.setEnabled(True)
                 else:
                     self.id.setText(str(node) + ' : is a node')
-                self.setEnabled(True)
+                    self.setEnabled(False)
             except Exception as e:
                 print('problem', e)
 
