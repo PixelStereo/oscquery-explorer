@@ -97,6 +97,7 @@ class ZeroConfExplorer(QWidget):
             name = 'OSCJSON thru TCP Explorer'
         # create the view
         self.devices_view = QTreeView()
+        self.devices_view.header().hide()
         # create the model
         self.devices_model = QStandardItemModel()
         # link model to the view
