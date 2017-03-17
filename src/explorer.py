@@ -18,11 +18,14 @@ class ZeroConfListener(object):
     def remove_service(self, zeroconf, type, name):
         name = name.split('.' + type)[0]
         print('BYE BYE ' + name)
-        for row in range(0, self.devices_model.rowCount()+1):
-            if str(self.device.model.item(row).data()) == name:
-                device = self.device.model.item(row)
-                self.devices_model.removeRow(device)
-                self._devices.pop(device)
+        print('lines', self.devices_model.rowCount())
+        for row in range(0, self.devices_model.rowCount()):
+            print('truc', self.devices_model.item(row))
+            if str(self.devices_model.item(row).node) == name:
+                device = self.devices_model.item(row)
+                self.devices_model.removeRow(row)
+                self._devices.pop(row)
+                break
             # TO DO : if we remove the current device, remove its three
         # TODO : SEND A SIGNAL to CLEAR thE tHREE
 
