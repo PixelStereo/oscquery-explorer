@@ -48,7 +48,6 @@ class Inspector(QGroupBox):
         super(Inspector, self).__init__()
         self.devices_model = model
         self.name = name
-        self.setEnabled(False)
         self.repetitions = QCheckBox("Unique (filter repetitions)")
 
         self.datatype = QComboBox()
@@ -56,31 +55,41 @@ class Inspector(QGroupBox):
         self.datatype.addItem("Int")
         self.datatype.addItem("String")
         self.datatype.addItem("Impulse")
-        self.datatype.addItem("Boolean")
+        self.datatype.addItem("Bool")
         self.datatype.addItem("Vec3f")
         self.datatype.addItem("Tuple")
         self.createControls("Controls")
         self.domain = QLineEdit()
         self.bounding_mode = QComboBox()
         self.bounding_mode.addItem('Clip')
-
         self.id = QLabel()
         self.value = QLabel()
+
+        self.header = QGroupBox()
+        header_layout = QGridLayout()
+        header_layout.addWidget(QLabel('Address'), 0, 0)
+        header_layout.addWidget(self.id, 0, 1)
+        self.header.setLayout(header_layout)
+
+        self.content = QGroupBox()
+        self.content.setEnabled(False)
+        content_layout = QGridLayout()
+        content_layout.addWidget(QLabel('Value'), 1, 0)
+        content_layout.addWidget(self.value, 1, 1)
+        content_layout.addWidget(QLabel('Datatype'), 2, 0)
+        content_layout.addWidget(self.datatype, 2, 1)
+        content_layout.addWidget(QLabel('Domain'), 3, 0)
+        content_layout.addWidget(self.domain, 3, 1)
+        content_layout.addWidget(QLabel('ClipMode'), 4, 0)
+        content_layout.addWidget(self.bounding_mode, 4, 1)
+        content_layout.addWidget(QLabel('Repetitions'), 5, 0)
+        content_layout.addWidget(self.repetitions, 5, 1)
+        self.content.setLayout(content_layout)
+
         Layout = QGridLayout()
-        Layout.addWidget(QLabel('Address'), 0, 0)
-        Layout.addWidget(self.id, 0, 1)
-        Layout.addWidget(QLabel('Value'), 1, 0)
-        Layout.addWidget(self.value, 1, 1)
-        Layout.addWidget(QLabel('Datatype'), 2, 0)
-        Layout.addWidget(self.datatype, 2, 1)
-        Layout.addWidget(QLabel('Domain'), 3, 0)
-        Layout.addWidget(self.domain, 3, 1)
-        Layout.addWidget(QLabel('ClipMode'), 4, 0)
-        Layout.addWidget(self.bounding_mode, 4, 1)
-        Layout.addWidget(QLabel('Repetitions'), 5, 0)
-        Layout.addWidget(self.repetitions, 5, 1)
+        Layout.addWidget(self.header, 0, 0)
+        Layout.addWidget(self.content, 2, 0)
         self.setLayout(Layout)
-        #self.setFixedSize(300, 300)
 
 
     def inspect(self, modelIndex):
@@ -94,11 +103,28 @@ class Inspector(QGroupBox):
                 if address:
                     self.id.setText(str(node) + ' is a param')
                     self.value.setText(str(address.clone_value().get()))
-                    value = address.clone_value().get()
-                    self.setEnabled(True)
+                    """
+                    add_callback
+                    fetch_value
+                    get_access_mode
+                    get_bounding_mode
+                    get_domain
+                    get_node
+                    get_unit
+                    """
+                    
+                    #print(address.get_node())
+                    #print(address.get_unit())
+                    #print(address.get_bounding_mode())
+                    #print(address.get_access_mode())
+                    datatype = str(address.get_value_type()).split('.')[1]
+                    self.datatype.setCurrentText(datatype)
+                    self.domain.setText(str(address.get_domain()))
+                    self.repetitions.setChecked(address.get_repetition_filter())
+                    self.content.setEnabled(True)
                 else:
                     self.id.setText(str(node) + ' : is a node')
-                    self.setEnabled(False)
+                    self.content.setEnabled(False)
             except Exception as e:
                 print('problem', e)
 
