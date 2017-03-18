@@ -23,6 +23,9 @@ from PyQt5.Qt import *
 
 
 class MainWindow(QWidget):
+    """
+    Main Window
+    """
     valueChanged = pyqtSignal(int)
 
     def __init__(self):
@@ -32,12 +35,8 @@ class MainWindow(QWidget):
         layout = QGridLayout()
         layout.addWidget(self.explorer, 0, 0)
         self.setLayout(layout)
+        self.setMaximumSize(1280, 720)
         self.setWindowTitle("PyOssia Test App")
-        #params = [method for method in dir(the_address) if not method.startswith('__') ]
-        #children = the_address.children()
-        #print(dir(children))
-        #print(len(children))
-        #print(children.pop_back())
         self.readSettings()
 
     def closeEvent(self, closevent):

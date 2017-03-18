@@ -110,17 +110,14 @@ class ZeroConfExplorer(QWidget):
         # set selection
         self.device_selection_model = self.devices_view.selectionModel()
         # set layout and group
-        self.zeroconf_group = QGroupBox(name)
         Layout = QGridLayout()
-        self.zeroconf_group.setLayout(Layout)
-        self.zeroconf_group.setMinimumWidth(300)
-        self.zeroconf_group.setMinimumHeight(300)
         # add the view to the layout
-        Layout.addWidget(self.devices_view, 0, 0)
         self.inspector = Inspector('', model=self.devices_model)
+        Layout.addWidget(self.devices_view, 0, 0)
         Layout.addWidget(self.inspector, 0, 1)
         # add the layout to the GroupBox
         self.setLayout(Layout)
+        self.setMinimumSize(300, 300)
         #self.setFixedSize(500, 300)
         # start zeroconf services
         zeroconf = Zeroconf()
