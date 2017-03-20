@@ -4,6 +4,7 @@
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QVariant, Qt
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidget, QMenu
+from PyQt5.QtCore import QTimer, QThread
 
 from zeroconf import ServiceBrowser, Zeroconf
 import pyossia
@@ -35,7 +36,7 @@ class ZeroConfListener(object):
         port = info.port
         server = info.server
         target = 'http://' + server + ':' + str(port)
-        device = pyossia.ossia.OSCQueryDevice("Explorer for " + name, target, 9998)
+        device = pyossia.OSCQueryDevice("Explorer for " + name, target, 9998)
         device_item = TreeItem(name)
         self._devices.append(device)
         self.devices_model.appendRow(device_item)
@@ -50,6 +51,11 @@ class TreeDevice(QStandardItem):
         super(TreeDevice, self).__init__()
         self._device = None
         self.iterate_children(device.get_root_node(), parent)
+        self.timer = QTimer()
+        self.timer.setInterval(100)
+        self.timer.timeout.connect(self.update)
+        self.timer.start()
+        self.device = device
 
     def iterate_children(self, node, parent):
         """
@@ -59,6 +65,10 @@ class TreeDevice(QStandardItem):
             child = TreeItem(nod)
             parent.appendRow(child)
             self.iterate_children(nod, child)
+
+    def update(self):
+        print('-update')
+        self.device.update()
 
     @property
     def device(self):
@@ -135,13 +145,13 @@ class ZeroConfExplorer(QWidget):
             while index.parent().isValid():
                 index = index.parent()
                 level += 1
-        node = self.devices_model.itemFromIndex(index)
-        menu = QMenu()
-        if level == 0:
-            menu.addAction("Refresh Device Namespace", node.update)
-        elif level > 0:
-            menu.addAction("Refresh Node", node.update)
-        menu.exec_(self.devices_view.viewport().mapToGlobal(position))
+            node = self.devices_model.itemFromIndex(index)
+            menu = QMenu()
+            if level == 0:
+                menu.addAction("Refresh Device Namespace", node.update)
+            elif level > 0:
+                menu.addAction("Refresh Node", node.update)
+            menu.exec_(self.devices_view.viewport().mapToGlobal(position))
 
     def selection_updated(self, *args, **kwargs):
         """

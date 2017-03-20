@@ -101,7 +101,7 @@ class Inspector(QGroupBox):
                 node = item.node
                 address = node.get_address()
                 if address:
-                    self.id.setText(str(node) + ' is a param')
+                    self.id.setText(str(node) + ' is a param' + str(address.get_access_mode()))
                     self.value.setText(str(address.clone_value().get()))
                     """
                     add_callback
@@ -122,6 +122,11 @@ class Inspector(QGroupBox):
                     self.domain.setText(str(address.get_domain()))
                     self.repetitions.setChecked(address.get_repetition_filter())
                     self.content.setEnabled(True)
+                    #self.value.valueChanged.connect(self.)
+                    #self.value.setText(str(address.value_changed()))
+                    def address_pull(value):
+                        self.value.setText(value.get())
+                    pull = address.pull(address_pull)
                 else:
                     self.id.setText(str(node) + ' : is a node')
                     self.content.setEnabled(False)
