@@ -125,7 +125,7 @@ class Inspector(QGroupBox):
                     #self.value.valueChanged.connect(self.)
                     #self.value.setText(str(address.value_changed()))
                     def address_pull(value):
-                        self.value.setText(value.get())
+                        self.value.setText(str(value.get()))
                     pull = address.pull(address_pull)
                 else:
                     self.id.setText(str(node) + ' : is a node')
