@@ -35,7 +35,7 @@ class ZeroConfListener(object):
         name = name.split('.' + type)[0]
         port = info.port
         server = info.server
-        target = 'http://' + server + ':' + str(port)
+        target = 'ws://' + server + ':' + str(port)
         device = pyossia.OSCQueryDevice("Explorer for " + name, target, 9998)
         device_item = TreeItem(name)
         self._devices.append(device)
