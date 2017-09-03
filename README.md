@@ -1,5 +1,5 @@
-# pyossia-test-app
-Python application for testing liossia python implementation
+# OSCQuery Explorer
+Standalone application for exploring oscquery devices
 
 # Download
 You can download the latest release [here](https://github.com/PixelStereo/pyossia-test-app/releases/latest)
