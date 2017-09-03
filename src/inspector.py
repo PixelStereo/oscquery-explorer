@@ -14,7 +14,6 @@ import sys
 
 import pyossia
 
-
 from PyQt5.QtCore import QSettings, pyqtSignal
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QHBoxLayout, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
@@ -97,12 +96,17 @@ class Inspector(QGroupBox):
         # is it a node or a param?
         item = self.devices_model.itemFromIndex(modelIndex)
         if item.__class__.__name__ == 'TreeItem':
-            try: 
                 node = item.node
-                address = node.get_address()
+                address = None
+                # BUG / TODO : CRASH IF ADDRESS IS A STRING (DEVICE NAME)
+                try:
+                    address = node.get_address()
+                except Exception as e:
+                    print('problem ' + (str(e)))
                 if address:
                     self.id.setText(str(node) + ' is a param' + str(address.get_access_mode()))
-                    self.value.setText(str(address.clone_value().get()))
+                    value = address.clone_value().get()
+                    self.value.setText(str((value)))
                     """
                     add_callback
                     fetch_value
@@ -126,19 +130,21 @@ class Inspector(QGroupBox):
                     #self.value.setText(str(address.value_changed()))
                     def address_pull(value):
                         self.value.setText(str(value.get()))
-                    pull = address.pull(address_pull)
+                    try: 
+                        print('inspect')
+                        pull = address.pull(address_pull)
+                        print('inspection done')
+                    except Exception as e:
+                        print('problem IIIIIIIUUCCIICCCCIIIIII', e)
                 else:
                     self.id.setText(str(node) + ' : is a node')
                     self.content.setEnabled(False)
-            except Exception as e:
-                print('problem', e)
 
+    def listen():
+        pass
 
-
-        
-
-
-
+    def uninspect(self):
+        print('uninspect')
 
     def createControls(self, title):
         self.controlsGroup = QGroupBox(title)

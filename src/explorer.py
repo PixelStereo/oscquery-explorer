@@ -51,10 +51,12 @@ class TreeDevice(QStandardItem):
         super(TreeDevice, self).__init__()
         self._device = None
         self.iterate_children(device.get_root_node(), parent)
+        """
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.update)
         self.timer.start()
+        """
         self.device = device
 
     def iterate_children(self, node, parent):
@@ -66,9 +68,11 @@ class TreeDevice(QStandardItem):
             parent.appendRow(child)
             self.iterate_children(nod, child)
 
+    """
     def update(self):
         print('-update')
         self.device.update()
+    """
 
     @property
     def device(self):
@@ -106,29 +110,29 @@ class ZeroConfExplorer(QWidget):
         if not name:
             name = 'OSCJSON thru TCP Explorer'
         # create the view
-        self.devices_view = QTreeView()
+        self.explorer = QTreeView()
         # Hide Useless Header
-        self.devices_view.header().hide()
+        self.explorer.header().hide()
         # create right-click menu
-        self.devices_view.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.devices_view.customContextMenuRequested.connect(self.contextual_menu)
+        self.explorer.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.explorer.customContextMenuRequested.connect(self.contextual_menu)
         # create the model
         self.devices_model = QStandardItemModel()
         # link model to the view
-        self.devices_view.setModel(self.devices_model)
-        self.devices_view.selectionModel().selectionChanged.connect(self.selection_updated)
+        self.explorer.setModel(self.devices_model)
+        self.explorer.selectionModel().selectionChanged.connect(self.selection_updated)
         # set selection
-        self.device_selection_model = self.devices_view.selectionModel()
+        self.device_selection_model = self.explorer.selectionModel()
         # set layout and group
         Layout = QGridLayout()
         # add the view to the layout
         self.inspector = Inspector('', model=self.devices_model)
-        Layout.addWidget(self.devices_view, 0, 0)
+        Layout.addWidget(self.explorer, 0, 0)
         Layout.addWidget(self.inspector, 0, 1)
         # add the layout to the GroupBox
         self.setLayout(Layout)
-        self.setMinimumSize(300, 300)
-        #self.setFixedSize(500, 300)
+        #self.setMinimumSize(300, 300)
+        self.explorer.setFixedSize(300, 300)
         # start zeroconf services
         zeroconf = Zeroconf()
         # start the callback, it will create items
@@ -137,7 +141,7 @@ class ZeroConfExplorer(QWidget):
 
     def contextual_menu(self, position):
     
-        indexes = self.devices_view.selectedIndexes()
+        indexes = self.explorer.selectedIndexes()
         if len(indexes) > 0:
         
             level = 0
@@ -151,7 +155,7 @@ class ZeroConfExplorer(QWidget):
                 menu.addAction("Refresh Device Namespace", node.update)
             elif level > 0:
                 menu.addAction("Refresh Node", node.update)
-            menu.exec_(self.devices_view.viewport().mapToGlobal(position))
+            menu.exec_(self.explorer.viewport().mapToGlobal(position))
 
     def selection_updated(self, *args, **kwargs):
         """
@@ -163,6 +167,7 @@ class ZeroConfExplorer(QWidget):
         # we consider unique selection
         modelIndex = index[0]
         if modelIndex:
+            self.inspector.uninspect()
             self.inspector.inspect(modelIndex)
         else:
             print('no node selected')
