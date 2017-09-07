@@ -37,8 +37,8 @@ class FloatUI(ParamUI):
     def __init__(self, param):
         super(FloatUI, self).__init__()
         self.ui = QSlider()
-        self.ui.setMinimum(param.get_domain().get_min().get())
-        self.ui.setMaximum(param.get_domain().get_max().get())
+        self.ui.setMinimum(param.domain.min().get())
+        self.ui.setMaximum(param.domain.max().get())
         self.layout.addWidget(self.ui)
 
 class Inspector(QGroupBox):
@@ -100,11 +100,11 @@ class Inspector(QGroupBox):
                 address = None
                 # BUG / TODO : CRASH IF ADDRESS IS A STRING (DEVICE NAME)
                 try:
-                    address = node.get_address()
+                    address = node.address
                 except Exception as e:
                     print('problem ' + (str(e)))
                 if address:
-                    self.id.setText(str(node) + ' is a param' + str(address.get_access_mode()))
+                    self.id.setText(str(node) + ' is a param' + str(address.access_mode))
                     value = address.clone_value().get()
                     self.value.setText(str((value)))
                     """
@@ -121,10 +121,10 @@ class Inspector(QGroupBox):
                     #print(address.get_unit())
                     #print(address.get_bounding_mode())
                     #print(address.get_access_mode())
-                    datatype = str(address.get_value_type()).split('.')[1]
+                    datatype = str(address.value_type).split('.')[1]
                     self.datatype.setCurrentText(datatype)
-                    self.domain.setText(str(address.get_domain()))
-                    self.repetitions.setChecked(address.get_repetition_filter())
+                    self.domain.setText(str(address.domain))
+                    self.repetitions.setChecked(address.repetition_filter)
                     self.content.setEnabled(True)
                     #self.value.valueChanged.connect(self.)
                     #self.value.setText(str(address.value_changed()))
@@ -132,7 +132,7 @@ class Inspector(QGroupBox):
                         self.value.setText(str(value.get()))
                     try: 
                         print('inspect')
-                        pull = address.pull(address_pull)
+                        pull = address.add_callback(address_pull)
                         print('inspection done')
                     except Exception as e:
                         print('problem IIIIIIIUUCCIICCCCIIIIII', e)
