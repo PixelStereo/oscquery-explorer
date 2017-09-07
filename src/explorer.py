@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidge
 from PyQt5.QtCore import QTimer, QThread
 
 from zeroconf import ServiceBrowser, Zeroconf
-import pyossia
+from pyossia import *
 from inspector import Inspector
 
 
@@ -35,8 +35,12 @@ class ZeroConfListener(object):
         name = name.split('.' + type)[0]
         port = info.port
         server = info.server
-        target = 'ws://' + server + ':' + str(port)
-        device = pyossia.OSCQueryDevice("Explorer for " + name, target, 9998)
+        try:
+            target = 'ws://' + server + ':' + str(port)
+            device = ossia.OSCQueryDevice("Explorer for " + name, target, 9998)
+        except RuntimeError:
+            target = 'http://' + server + ':' + str(port)
+            device = ossia.OSCQueryDevice("Explorer for " + name, target, 9998)
         device_item = TreeItem(name)
         self._devices.append(device)
         self.devices_model.appendRow(device_item)
@@ -50,7 +54,7 @@ class TreeDevice(QStandardItem):
     def __init__(self, device, parent):
         super(TreeDevice, self).__init__()
         self._device = None
-        self.iterate_children(device.get_root_node(), parent)
+        self.iterate_children(device.root_node, parent)
         """
         self.timer = QTimer()
         self.timer.setInterval(100)
