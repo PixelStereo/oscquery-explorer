@@ -13,7 +13,7 @@ import os
 import sys
 
 import pyossia
-from pyossia.pyqt.canvas import add_paramUI
+from pyossia.pyqt.panel import add_remote
 
 from PyQt5.QtCore import QSettings, pyqtSignal
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QHBoxLayout, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
@@ -74,7 +74,7 @@ class Inspector(QGroupBox):
     """
     def __init__(self, name, model=None):
         super(Inspector, self).__init__()
-        self.paramUI = None
+        self.remote = None
         self.devices_model = model
         self.name = name
         self.layout = QGridLayout()
@@ -105,19 +105,24 @@ class Inspector(QGroupBox):
                 # TODO : explore priority and NODE's attributes
                 self.setEnabled(False)
                 self.clearLayout()
-                self.paramUI = None
+                if self.remote:
+                    del(self.remote)
+                    del(self.paramData)
+                self.remote = None
                 self.paramData = None
             else:
                 # this is a parameter
                 # remove old widgets
-                if self.paramUI:
+                if self.remote:
                     self.clearLayout()
-                    self.paramUI = None
+                    del(self.remote)
+                    del(self.paramData)
+                    self.remote = None
                     self.paramData = None
                 # create new ones
-                self.paramUI = add_paramUI(item.node.parameter)
+                self.remote = add_remote(item.node.parameter)
                 self.paramData = ParamData(item.node.parameter)
-                self.layout.addWidget(self.paramUI, 0, 0)
+                self.layout.addWidget(self.remote, 0, 0)
                 self.layout.addWidget(self.paramData, 2, 0)
                 self.setLayout(self.layout)
                 self.setEnabled(True)
