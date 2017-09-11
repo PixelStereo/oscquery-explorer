@@ -13,6 +13,7 @@ import os
 import sys
 
 import pyossia
+from pyossia.pyqt.canvas import add_paramUI
 
 from PyQt5.QtCore import QSettings, pyqtSignal
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QHBoxLayout, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
@@ -20,35 +21,14 @@ from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.Qt import *
 
 
-class ParamUI(QGroupBox):
+class ParamData(QGroupBox):
     """
-    Must be subclassed with creation of self.ui (QWidget)
+    ParamData Class is a GUI that display Properties of a paramerter
     """
-    def __init__(self, param):
-        super(ParamUI, self).__init__()
-        self.name = str(param)
-        self.label = QLabel(self.name)
-        self.layout = QHBoxLayout()
-        self.layout.addWidget(self.label)
-        self.setLayout(self.layout)
-
-class FloatUI(ParamUI):
-    """docstring for ClassName"""
-    def __init__(self, param):
-        super(FloatUI, self).__init__()
-        self.ui = QSlider()
-        self.ui.setMinimum(param.domain.min().get())
-        self.ui.setMaximum(param.domain.max().get())
-        self.layout.addWidget(self.ui)
-
-class Inspector(QGroupBox):
-    """docstring for Inspector"""
-    def __init__(self, name, model=None):
-        super(Inspector, self).__init__()
-        self.devices_model = model
-        self.name = name
+    def __init__(self, parameter, **kwargs):
+        super(ParamData, self).__init__()
+        self.setEnabled(False)
         self.repetitions = QCheckBox("Unique (filter repetitions)")
-
         self.datatype = QComboBox()
         self.datatype.addItem("Float")
         self.datatype.addItem("Int")
@@ -57,221 +37,87 @@ class Inspector(QGroupBox):
         self.datatype.addItem("Bool")
         self.datatype.addItem("Vec3f")
         self.datatype.addItem("Tuple")
-        self.createControls("Controls")
         self.domain = QLineEdit()
         self.bounding_mode = QComboBox()
         self.bounding_mode.addItem('Clip')
-        self.id = QLabel()
-        self.value = QLabel()
+        self.bounding_mode.addItem('Free')
+        self.bounding_mode.addItem('Both')
+        self.bounding_mode.addItem('Low')
+        self.bounding_mode.addItem('High')
+        layout = QGridLayout()
+        layout.addWidget(QLabel('Datatype'), 2, 0)
+        layout.addWidget(self.datatype, 2, 1)
+        layout.addWidget(QLabel('Domain'), 3, 0)
+        layout.addWidget(self.domain, 3, 1)
+        layout.addWidget(QLabel('ClipMode'), 4, 0)
+        layout.addWidget(self.bounding_mode, 4, 1)
+        layout.addWidget(QLabel('Repetitions'), 5, 0)
+        layout.addWidget(self.repetitions, 5, 1)
+        self.setLayout(layout)
+        self.inspect(parameter)
 
-        self.header = QGroupBox()
-        header_layout = QGridLayout()
-        header_layout.addWidget(QLabel('Address'), 0, 0)
-        header_layout.addWidget(self.id, 0, 1)
-        self.header.setLayout(header_layout)
+    def inspect(self, parameter):
+        datatype = str(parameter.value_type).split('.')[1]
+        self.datatype.setCurrentText(datatype)
+        if parameter.domain.min.valid():
+            self.domain.setText(str(parameter.domain.min.get()) + ' / ' + str(parameter.domain.max.get()))
+        else:
+            self.domain.setText('')
+        self.repetitions.setChecked(parameter.repetition_filter)
+        self.setEnabled(True)
 
-        self.content = QGroupBox()
-        self.content.setEnabled(False)
-        content_layout = QGridLayout()
-        content_layout.addWidget(QLabel('Value'), 1, 0)
-        content_layout.addWidget(self.value, 1, 1)
-        content_layout.addWidget(QLabel('Datatype'), 2, 0)
-        content_layout.addWidget(self.datatype, 2, 1)
-        content_layout.addWidget(QLabel('Domain'), 3, 0)
-        content_layout.addWidget(self.domain, 3, 1)
-        content_layout.addWidget(QLabel('ClipMode'), 4, 0)
-        content_layout.addWidget(self.bounding_mode, 4, 1)
-        content_layout.addWidget(QLabel('Repetitions'), 5, 0)
-        content_layout.addWidget(self.repetitions, 5, 1)
-        self.content.setLayout(content_layout)
 
-        Layout = QGridLayout()
-        Layout.addWidget(self.header, 0, 0)
-        Layout.addWidget(self.content, 2, 0)
-        self.setLayout(Layout)
+class Inspector(QGroupBox):
+    """
+    This is a Parameter inspector
+    it must refer to a parameter as model in inspect()
+    """
+    def __init__(self, name, model=None):
+        super(Inspector, self).__init__()
+        self.paramUI = None
+        self.devices_model = model
+        self.name = name
+        self.layout = QGridLayout()
+        self.setLayout(self.layout)
+        self.setMaximumSize(330, 400)
 
+    def clearLayout(self):
+        """
+        Clear Layout / Remove Parameters UI
+        """
+        if self.layout != None:
+            while self.layout.count():
+                child = self.layout.takeAt(0)
+                if child.widget() is not None:
+                    child.widget().deleteLater()
+                elif child.layout() is not None:
+                    clearLayout(child.layout())
 
     def inspect(self, modelIndex):
-        # at this point, we are sure node is a TreeItem
-        # is it a node or a param?
+        """
+        Inspect a parameter
+        """
         item = self.devices_model.itemFromIndex(modelIndex)
-        if item.__class__.__name__ == 'TreeItem':
-                node = item.node
-                address = None
-                # BUG / TODO : CRASH IF ADDRESS IS A STRING (DEVICE NAME)
-                try:
-                    address = node.address
-                except Exception as e:
-                    print('problem ' + (str(e)))
-                if address:
-                    self.id.setText(str(node) + ' is a param' + str(address.access_mode))
-                    value = address.clone_value().get()
-                    self.value.setText(str((value)))
-                    """
-                    add_callback
-                    fetch_value
-                    get_access_mode
-                    get_bounding_mode
-                    get_domain
-                    get_node
-                    get_unit
-                    """
-                    
-                    #print(address.get_node())
-                    #print(address.get_unit())
-                    #print(address.get_bounding_mode())
-                    #print(address.get_access_mode())
-                    datatype = str(address.value_type).split('.')[1]
-                    self.datatype.setCurrentText(datatype)
-                    self.domain.setText(str(address.domain))
-                    self.repetitions.setChecked(address.repetition_filter)
-                    self.content.setEnabled(True)
-                    #self.value.valueChanged.connect(self.)
-                    #self.value.setText(str(address.value_changed()))
-                    def address_pull(value):
-                        self.value.setText(str(value.get()))
-                    try: 
-                        print('inspect')
-                        pull = address.add_callback(address_pull)
-                        print('inspection done')
-                    except Exception as e:
-                        print('problem IIIIIIIUUCCIICCCCIIIIII', e)
-                else:
-                    self.id.setText(str(node) + ' : is a node')
-                    self.content.setEnabled(False)
-
-    def listen():
-        pass
-
-    def uninspect(self):
-        print('uninspect')
-
-    def createControls(self, title):
-        self.controlsGroup = QGroupBox(title)
-        #self.controlsGroup.setCheckable(True)
-
-
-        # Create a QGroupBox for each parameter
-        # if bool = checkbox
-        # if float / int = slider
-        # if string = qlineedit + combo
-
-        # int
-        """
-        self.an_int_label = QLabelSelectable('/test/value/int')
-        self.an_int = QSlider(Qt.Horizontal)
-        self.an_int.setFocusPolicy(Qt.StrongFocus)
-        self.an_int.setTickPosition(QSlider.TicksBothSides)
-        self.an_int.setTickInterval(10)
-        self.an_int.setRange(0, 100)
-        self.an_int.setSingleStep(1)
-        self.an_int_box = QSpinBox()
-        self.an_int_box.setRange(0, 100)
-        self.an_int_box.valueChanged.connect(self.an_int.setValue)
-        #self.an_int_box.valueChanged.connect(int_handler)
-        self.an_int.valueChanged.connect(self.an_int_box.setValue)
-        #self.an_int.valueChanged.connect(int_handler)
-
-
-        # float
-        def SliderFloatGetter(value):
-            scaledValue = self.a_float_box.value()
-            scaledValue = scaledValue * 65536
-            scaledValue = int(scaledValue)
-            self.a_float.setValue(scaledValue)
-
-        def SliderFloatSetter(value):   
-            scaledValue = float(value)/65536
-            self.a_float_box.setValue(scaledValue)
-            # push a value
-            float_address.push_value(ossia.Value(scaledValue))
-
-        self.a_float_label = QLabel('/test/value/float')
-        self.a_float = QSlider(Qt.Horizontal)
-        self.a_float.setRange(0, 65536)
-        self.a_float.setFocusPolicy(Qt.StrongFocus)
-        self.a_float.setTickPosition(QSlider.TicksBothSides)
-        self.a_float.setTickInterval(10)
-        #self.a_float.setSingleStep(655.36)
-        self.a_float_box = QDoubleSpinBox()
-        self.a_float_box.setDecimals(6)
-        self.a_float_box.setRange(0, 1)
-        self.a_float_box.setSingleStep(0.01)
-        self.a_float.valueChanged.connect(SliderFloatSetter)
-        self.a_float_box.valueChanged.connect(SliderFloatGetter)
-        # create the node
-        float_node = self.local_device.add_node("/test/value/float")
-        # create the parameter
-        float_address = float_node.create_address(ossia.ValueType.Float)
-
-        # attach a callback function to the boolean address
-        def float_value_callback(value):
-            #self.a_float.setValue(value.get()*100000)
-            self.a_float_box.setValue(value.get())
-
-        float_address.add_callback(float_value_callback)
-        # push a value
-        float_address.push_value(ossia.Value(0.456789))
-
-
-
-
-        # a bool
-        self.a_bool_label = QLabel('/test/value/bool')
-        self.a_bool = QCheckBox()
-        # create the node
-        bool_node = self.local_device.add_node("/test/value/bool")
-        # create the parameter
-        bool_address = bool_node.create_address(ossia.ValueType.Bool)
-
-        # attach a callback function to the boolean address
-        def bool_value_callback(value):
-            # set the checkbox according to ossia inputs
-            self.a_bool.setChecked(value.get())
-
-        bool_address.add_callback(bool_value_callback)
-        # push a value
-        def bool_handler(value):
-            bool_address.push_value(ossia.Value(value))
-
-        self.a_bool.stateChanged.connect(bool_handler)
-        bool_address.push_value(ossia.Value(True))
-        # a string
-        def string_handler(value):
-            string_address = string_node.push_value(ossia.Value(value))
-        self.a_string_label = QLabel('/test/value/string')
-        self.a_string = QLineEdit()
-        self.a_string.setText("trap ~± )çà!èàç!67[ÛåÊ’√∏Ô‰ML")
-        # create the node
-        string_node = self.local_device.add_node("/test/value/string")
-        # create the parameter
-        string_address = string_node.create_address(ossia.ValueType.String)
-        def string_value_callback(value):
-            # set the checkbox according to ossia inputs
-            self.a_string.setText(value.get())
-
-        string_address.add_callback(string_value_callback)
-
-        # attach a callback function to the boolean address
-        def string_value_callback(value):
-            self.a_string.setText(value.get())
-
-        string_address.add_callback(string_value_callback)
-        # push a value
-        string_address.push_value(ossia.Value("trap ~± )çà!èàç!67[ÛåÊ’√∏Ô‰ML"))
-        controlsLayout = QGridLayout()
-        
-        controlsLayout.addWidget(self.an_int_label, 0, 0)
-        controlsLayout.addWidget(self.an_int, 0, 1)
-        controlsLayout.addWidget(self.an_int_box, 0, 2)
-        controlsLayout.addWidget(self.a_float_label, 1, 0)
-        controlsLayout.addWidget(self.a_float, 1, 1)
-        controlsLayout.addWidget(self.a_float_box, 1, 2)
-        controlsLayout.addWidget(self.a_bool_label, 2, 0)
-        controlsLayout.addWidget(self.a_bool, 2, 1)
-        controlsLayout.addWidget(self.a_string_label, 3, 0)
-        controlsLayout.addWidget(self.a_string, 3, 1)
-        self.controlsGroup.setLayout(controlsLayout)
-        self.controlsGroup.setMinimumWidth(300)
-        self.controlsGroup.setMinimumHeight(300)
-        """
+        if item.node.__class__.__name__ == 'Node':
+            # check if it is a node or a parameter
+            if not item.node.parameter:
+                # this is a node
+                # TODO : explore priority and NODE's attributes
+                self.setEnabled(False)
+                self.clearLayout()
+                self.paramUI = None
+                self.paramData = None
+            else:
+                # this is a parameter
+                # remove old widgets
+                if self.paramUI:
+                    self.clearLayout()
+                    self.paramUI = None
+                    self.paramData = None
+                # create new ones
+                self.paramUI = add_paramUI(item.node.parameter)
+                self.paramData = ParamData(item.node.parameter)
+                self.layout.addWidget(self.paramUI, 0, 0)
+                self.layout.addWidget(self.paramData, 2, 0)
+                self.setLayout(self.layout)
+                self.setEnabled(True)

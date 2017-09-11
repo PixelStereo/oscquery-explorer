@@ -171,7 +171,6 @@ class ZeroConfExplorer(QWidget):
         # we consider unique selection
         modelIndex = index[0]
         if modelIndex:
-            self.inspector.uninspect()
             self.inspector.inspect(modelIndex)
         else:
             print('no node selected')
