@@ -1,7 +1,8 @@
 # OSCQuery Explorer
 Standalone application for exploring oscquery devices
 
-# Building
-    brew install pyqt5
+# Quickstart
+    brew install python3
+    pip3 install pyqt5
     cd src
-    ./../scripts/build.sh
+    python3 main.py
