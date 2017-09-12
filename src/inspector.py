@@ -99,30 +99,34 @@ class Inspector(QGroupBox):
         """
         item = self.devices_model.itemFromIndex(modelIndex)
         if item.node.__class__.__name__ == 'Node':
-            # check if it is a node or a parameter
-            if not item.node.parameter:
-                # this is a node
-                # TODO : explore priority and NODE's attributes
-                self.setEnabled(False)
-                self.clearLayout()
-                if self.remote:
-                    del(self.remote)
-                    del(self.paramData)
-                self.remote = None
-                self.paramData = None
-            else:
-                # this is a parameter
-                # remove old widgets
-                if self.remote:
+            try:
+                # check if it is a node or a parameter
+                if not item.node.parameter:
+                    # this is a node
+                    # TODO : explore priority and NODE's attributes
+                    self.setEnabled(False)
                     self.clearLayout()
-                    del(self.remote)
-                    del(self.paramData)
+                    if self.remote:
+                        del(self.remote)
+                        del(self.paramData)
                     self.remote = None
                     self.paramData = None
-                # create new ones
-                self.remote = add_remote(item.node.parameter)
-                self.paramData = ParamData(item.node.parameter)
-                self.layout.addWidget(self.remote, 0, 0)
-                self.layout.addWidget(self.paramData, 2, 0)
-                self.setLayout(self.layout)
-                self.setEnabled(True)
+                else:
+                    # this is a parameter
+                    # remove old widgets
+                    if self.remote:
+                        self.clearLayout()
+                        del(self.remote)
+                        del(self.paramData)
+                        self.remote = None
+                        self.paramData = None
+                    # create new ones
+                    self.remote = add_remote(item.node.parameter)
+                    self.paramData = ParamData(item.node.parameter)
+                    self.layout.addWidget(self.remote, 0, 0)
+                    self.layout.addWidget(self.paramData, 2, 0)
+                    self.setLayout(self.layout)
+                    self.setEnabled(True)
+            except:
+
+                pass
