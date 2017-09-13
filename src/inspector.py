@@ -13,7 +13,7 @@ import os
 import sys
 
 import pyossia
-from pyossia.pyqt.panel import add_remote
+from pyossia.pyqt.panel import Panel
 
 from PyQt5.QtCore import QSettings, pyqtSignal
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QHBoxLayout, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
@@ -67,7 +67,7 @@ class ParamData(QGroupBox):
         self.setEnabled(True)
 
 
-class Inspector(QGroupBox):
+class Inspector(Panel):
     """
     This is a Parameter inspector
     it must refer to a parameter as model in inspect()
@@ -77,8 +77,6 @@ class Inspector(QGroupBox):
         self.remote = None
         self.devices_model = model
         self.name = name
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
         self.setMaximumSize(330, 400)
 
     def clearLayout(self):
@@ -93,40 +91,36 @@ class Inspector(QGroupBox):
                 elif child.layout() is not None:
                     clearLayout(child.layout())
 
-    def inspect(self, modelIndex):
+    def inspect(self, node):
         """
         Inspect a parameter
         """
-        item = self.devices_model.itemFromIndex(modelIndex)
-        if item.node.__class__.__name__ == 'Node':
-            try:
-                # check if it is a node or a parameter
-                if not item.node.parameter:
-                    # this is a node
-                    # TODO : explore priority and NODE's attributes
-                    self.setEnabled(False)
+        try:
+            # check if it is a node or a parameter
+            if not item.node.parameter:
+                # this is a node
+                # TODO : explore priority and NODE's attributes
+                self.setEnabled(False)
+                self.clearLayout()
+                if self.remote:
+                    del(self.remote)
+                    del(self.paramData)
+                self.remote = None
+                self.paramData = None
+            else:
+                # this is a parameter
+                # remove old widgets
+                if self.remote:
                     self.clearLayout()
-                    if self.remote:
-                        del(self.remote)
-                        del(self.paramData)
+                    del(self.remote)
+                    del(self.paramData)
                     self.remote = None
                     self.paramData = None
-                else:
-                    # this is a parameter
-                    # remove old widgets
-                    if self.remote:
-                        self.clearLayout()
-                        del(self.remote)
-                        del(self.paramData)
-                        self.remote = None
-                        self.paramData = None
-                    # create new ones
-                    self.remote = add_remote(item.node.parameter)
-                    self.paramData = ParamData(item.node.parameter)
-                    self.layout.addWidget(self.remote, 0, 0)
-                    self.layout.addWidget(self.paramData, 2, 0)
-                    self.setLayout(self.layout)
-                    self.setEnabled(True)
-            except:
-
-                pass
+                # create new ones
+                #self.add_remote(item.node.parameter)
+                self.paramData = ParamData(item.node.parameter)
+                #self.layout.addWidget(self.remote, 0, 0)
+                self.layout.addWidget(self.paramData, 2, 0)
+                self.setEnabled(True)
+        except:
+            pass

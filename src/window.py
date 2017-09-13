@@ -35,7 +35,7 @@ class MainWindow(QWidget):
         layout = QGridLayout()
         layout.addWidget(self.explorer, 0, 0)
         self.setLayout(layout)
-        self.setMaximumSize(800, 400)
+        self.setMaximumSize(600, 400)
         self.setWindowTitle("PyOssia Test App")
         self.readSettings()
 
