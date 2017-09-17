@@ -77,9 +77,7 @@ class Inspector(Panel):
         self.remote = None
         self.devices_model = model
         self.name = name
-        #self.layout = QGridLayout()
-        #self.setLayout(self.layout)
-        #self.setMaximumSize(330, 400)
+        self.setMaximumSize(330, 400)
 
     def clearLayout(self):
         """
@@ -93,12 +91,11 @@ class Inspector(Panel):
                 elif child.layout() is not None:
                     clearLayout(child.layout())
 
-    def inspect(self, modelIndex):
+    def inspect(self, node):
         """
         Inspect a parameter
         """
-        item = self.devices_model.itemFromIndex(modelIndex)
-        if item.node.__class__.__name__ == 'Node':
+        try:
             # check if it is a node or a parameter
             if not item.node.parameter:
                 # this is a node
@@ -120,9 +117,10 @@ class Inspector(Panel):
                     self.remote = None
                     self.paramData = None
                 # create new ones
-                self.remote = self.add_remote(item.node.parameter)
+                #self.add_remote(item.node.parameter)
                 self.paramData = ParamData(item.node.parameter)
-                self.layout.addWidget(self.remote, 0)
-                self.layout.addWidget(self.paramData, 2)
-                self.setLayout(self.layout)
+                #self.layout.addWidget(self.remote, 0, 0)
+                self.layout.addWidget(self.paramData, 2, 0)
                 self.setEnabled(True)
+        except:
+            pass

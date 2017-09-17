@@ -3,11 +3,12 @@
 
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QVariant, Qt
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidget, QMenu
+from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidget, QMenu, QMainWindow, QDialog, QVBoxLayout
 from PyQt5.QtCore import QTimer, QThread
 
 from zeroconf import ServiceBrowser, Zeroconf
-from pyossia import *
+from pyossia.pyqt.device_view import DeviceView
+from pyossia import ossia
 from inspector import Inspector
 
 
@@ -41,18 +42,19 @@ class ZeroConfListener(object):
         except RuntimeError:
             target = 'http://' + server + ':' + str(port)
             device = ossia.OSCQueryDevice("Explorer for " + name, target, 9998)
-        device_item = TreeItem(name)
+        # Grab the namespace with an update
+        device.update()
+        device_item = NodeItem(device)
         self._devices.append(device)
         self.devices_model.appendRow(device_item)
-        device.update()
-        device_item = TreeDevice(device, device_item)
+        device_item = DeviceItem(device, device_item)
         print('ADDED ' + str(device))
 
-
-class TreeDevice(QStandardItem):
+        
+class DeviceItem(QStandardItem):
     """docstring for TreeDevice"""
     def __init__(self, device, parent):
-        super(TreeDevice, self).__init__()
+        super(DeviceItem, self).__init__(str(device))
         self._device = None
         self.iterate_children(device.root_node, parent)
         """
@@ -62,13 +64,14 @@ class TreeDevice(QStandardItem):
         self.timer.start()
         """
         self.device = device
+        print('DO IT GUI', self.device)
 
     def iterate_children(self, node, parent):
         """
         recursive method to explore children until the end
         """
         for nod in node.children():
-            child = TreeItem(nod)
+            child = NodeItem(nod)
             parent.appendRow(child)
             self.iterate_children(nod, child)
 
@@ -78,6 +81,9 @@ class TreeDevice(QStandardItem):
         self.device.update()
     """
 
+    def update(self):
+        self.device.update()
+
     @property
     def device(self):
         return self._device
@@ -86,14 +92,19 @@ class TreeDevice(QStandardItem):
         if device:
             self._device = device
 
-class TreeItem(QStandardItem):
+        
+class NodeItem(QStandardItem):
     """
     docstring for TreeItem
     """
     def __init__(self, node):
         nickname = str(node).split('/')[-1]
-        super(TreeItem, self).__init__(nickname)
+        super(NodeItem, self).__init__(nickname)
         self.node = node
+
+    @property
+    def root_node(self):
+        return self.node.root_node
 
     @property
     def node(self):
@@ -102,6 +113,9 @@ class TreeItem(QStandardItem):
     def node(self, node):
         if node:
             self._node = node
+
+    def update(self):
+        self.node.update()
 
 class ZeroConfExplorer(QWidget):
     """
@@ -130,9 +144,7 @@ class ZeroConfExplorer(QWidget):
         # set layout and group
         Layout = QGridLayout()
         # add the view to the layout
-        self.inspector = Inspector('', model=self.devices_model)
         Layout.addWidget(self.explorer, 0, 0)
-        Layout.addWidget(self.inspector, 0, 1)
         # add the layout to the GroupBox
         self.setLayout(Layout)
         #self.setMinimumSize(300, 300)
@@ -171,6 +183,13 @@ class ZeroConfExplorer(QWidget):
         # we consider unique selection
         modelIndex = index[0]
         if modelIndex:
-            self.inspector.inspect(modelIndex)
+            node = self.devices_model.itemFromIndex(modelIndex).node
+            if node.__class__.__name__ == 'Node':
+                # TODO INSPECT
+                #self.inspector.inspect(node)
+                pass
+            elif node.__class__.__name__ == 'OSCQueryDevice':
+                #self.device_view.setup(device=node)
+                pass
         else:
             print('no node selected')

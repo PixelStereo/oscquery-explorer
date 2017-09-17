@@ -35,8 +35,8 @@ class MainWindow(QWidget):
         layout = QGridLayout()
         layout.addWidget(self.explorer, 0, 0)
         self.setLayout(layout)
-        self.setMaximumSize(800, 400)
-        self.setWindowTitle("PyOssia Test App")
+        self.setMaximumSize(600, 400)
+        self.setWindowTitle("OSCQuery Explorer")
         self.readSettings()
 
     def closeEvent(self, closevent):
@@ -50,17 +50,19 @@ class MainWindow(QWidget):
         """
         read the settings
         """
-        settings = QSettings('pixel-stereo', 'lekture')
+        settings = QSettings('pixel-stereo', 'oscquery_explorer')
         pos = settings.value('pos')
         size = settings.value('size')
-        self.move(pos)
-        self.resize(size)
+        if pos:
+            self.move(pos)
+        if size:
+            self.resize(size)
 
     def writeSettings(self):
         """
         write settings
         """
-        settings = QSettings('Pixel Stereo', 'pyossia-test-app')
+        settings = QSettings('pixel-stereo', 'oscquery_explorer')
         settings.setValue('pos', self.pos())
         settings.setValue('size', self.size())
 
