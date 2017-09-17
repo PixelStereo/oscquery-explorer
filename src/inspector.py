@@ -13,7 +13,7 @@ import os
 import sys
 
 import pyossia
-from pyossia.pyqt.panel import add_remote
+from pyossia.pyqt.panel import Panel
 
 from PyQt5.QtCore import QSettings, pyqtSignal
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QHBoxLayout, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
@@ -67,7 +67,7 @@ class ParamData(QGroupBox):
         self.setEnabled(True)
 
 
-class Inspector(QGroupBox):
+class Inspector(Panel):
     """
     This is a Parameter inspector
     it must refer to a parameter as model in inspect()
@@ -77,9 +77,9 @@ class Inspector(QGroupBox):
         self.remote = None
         self.devices_model = model
         self.name = name
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
-        self.setMaximumSize(330, 400)
+        #self.layout = QGridLayout()
+        #self.setLayout(self.layout)
+        #self.setMaximumSize(330, 400)
 
     def clearLayout(self):
         """
@@ -120,9 +120,9 @@ class Inspector(QGroupBox):
                     self.remote = None
                     self.paramData = None
                 # create new ones
-                self.remote = add_remote(item.node.parameter)
+                self.remote = self.add_remote(item.node.parameter)
                 self.paramData = ParamData(item.node.parameter)
-                self.layout.addWidget(self.remote, 0, 0)
-                self.layout.addWidget(self.paramData, 2, 0)
+                self.layout.addWidget(self.remote, 0)
+                self.layout.addWidget(self.paramData, 2)
                 self.setLayout(self.layout)
                 self.setEnabled(True)
