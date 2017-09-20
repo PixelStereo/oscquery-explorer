@@ -9,6 +9,8 @@ from PyQt5.QtCore import QTimer, QThread
 from zeroconf import ServiceBrowser, Zeroconf
 from pyossia.pyqt.device_view import DeviceView
 from pyossia import ossia
+import pyossia
+from pyossia.pyqt.panel import Panel
 from inspector import Inspector
 
 
@@ -131,6 +133,7 @@ class ZeroConfExplorer(QWidget):
         self.explorer = QTreeView()
         # Hide Useless Header
         self.explorer.header().hide()
+        self.panel = Panel()
         # create right-click menu
         self.explorer.setContextMenuPolicy(Qt.CustomContextMenu)
         self.explorer.customContextMenuRequested.connect(self.contextual_menu)
@@ -145,6 +148,7 @@ class ZeroConfExplorer(QWidget):
         Layout = QGridLayout()
         # add the view to the layout
         Layout.addWidget(self.explorer, 0, 0)
+        Layout.addWidget(self.panel, 0, 1)
         # add the layout to the GroupBox
         self.setLayout(Layout)
         #self.setMinimumSize(300, 300)
@@ -186,7 +190,10 @@ class ZeroConfExplorer(QWidget):
             node = self.devices_model.itemFromIndex(modelIndex).node
             if node.__class__.__name__ == 'Node':
                 # TODO INSPECT
-                #self.inspector.inspect(node)
+                for child in node.children():
+                    if child.parameter:
+                        #self.panel.add_remote(child.parameter)
+                        pass
                 pass
             elif node.__class__.__name__ == 'OSCQueryDevice':
                 #self.device_view.setup(device=node)
