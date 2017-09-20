@@ -17,21 +17,16 @@ from inspector import Inspector
 class ZeroConfListener(object):
     def __init__(self, *args, **kwargs):
         self.devices_model = args[0]
-        self._devices = []
 
     def remove_service(self, zeroconf, type, name):
         name = name.split('.' + type)[0]
         print('BYE BYE ' + name)
-        print('lines', self.devices_model.rowCount())
         for row in range(0, self.devices_model.rowCount()):
-            print('truc', self.devices_model.item(row))
-            if str(self.devices_model.item(row).node) == name:
+            if str(self.devices_model.item(row).name) == name:
                 device = self.devices_model.item(row)
                 self.devices_model.removeRow(row)
-                self._devices.pop(row)
-                break
-            # TO DO : if we remove the current device, remove its three
-        # TODO : SEND A SIGNAL to CLEAR thE tHREE
+            # TO DO : if we remove the current device, remove its tree
+        # TODO : SEND A SIGNAL to CLEAR thE tREE
 
     def add_service(self, zeroconf, type, name):
         info = zeroconf.get_service_info(type, name)
@@ -46,27 +41,21 @@ class ZeroConfListener(object):
             device = ossia.OSCQueryDevice("Explorer for " + name, target, 9998)
         # Grab the namespace with an update
         device.update()
-        device_item = NodeItem(device)
-        self._devices.append(device)
+        description = name + ' on ' + server + ':' + str(port)
+        device_item = DeviceItem(description, device)
         self.devices_model.appendRow(device_item)
-        device_item = DeviceItem(device, device_item)
         print('ADDED ' + str(device))
 
         
 class DeviceItem(QStandardItem):
     """docstring for TreeDevice"""
-    def __init__(self, device, parent):
-        super(DeviceItem, self).__init__(str(device))
+    def __init__(self, description, device):
+        super(DeviceItem, self).__init__(description)
         self._device = None
-        self.iterate_children(device.root_node, parent)
-        """
-        self.timer = QTimer()
-        self.timer.setInterval(100)
-        self.timer.timeout.connect(self.update)
-        self.timer.start()
-        """
         self.device = device
-        print('DO IT GUI', self.device)
+        device_item = NodeItem(description)
+        self.iterate_children(device.root_node, self)
+        self.description = description
 
     def iterate_children(self, node, parent):
         """
@@ -76,12 +65,6 @@ class DeviceItem(QStandardItem):
             child = NodeItem(nod)
             parent.appendRow(child)
             self.iterate_children(nod, child)
-
-    """
-    def update(self):
-        print('-update')
-        self.device.update()
-    """
 
     def update(self):
         self.device.update()
@@ -94,6 +77,14 @@ class DeviceItem(QStandardItem):
         if device:
             self._device = device
 
+    @property
+    def node(self):
+        return self.device.root_node
+
+
+    @property
+    def name(self):
+        return self.description.split(' ')[0]
         
 class NodeItem(QStandardItem):
     """
@@ -103,6 +94,7 @@ class NodeItem(QStandardItem):
         nickname = str(node).split('/')[-1]
         super(NodeItem, self).__init__(nickname)
         self.node = node
+
 
     @property
     def root_node(self):
