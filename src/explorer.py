@@ -7,10 +7,10 @@ from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidge
 from PyQt5.QtCore import QTimer, QThread
 
 from zeroconf import ServiceBrowser, Zeroconf
-from pyossia.pyqt.device_view import DeviceView
+from pxst_widgets.device_view import DeviceView
 from pyossia import ossia
 import pyossia
-from pyossia.pyqt.panel import Panel
+from pxst_widgets.panel import Panel
 from inspector import Inspector
 
 
@@ -44,7 +44,7 @@ class ZeroConfListener(object):
         description = name + ' on ' + server + ':' + str(port)
         device_item = DeviceItem(description, device)
         self.devices_model.appendRow(device_item)
-        print('ADDED ' + str(device))
+        print('ADDED ' + str(name))
 
         
 class DeviceItem(QStandardItem):

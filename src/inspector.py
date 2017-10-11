@@ -13,7 +13,7 @@ import os
 import sys
 
 import pyossia
-from pyossia.pyqt.panel import Panel
+from pxst_widgets.panel import Panel
 
 from PyQt5.QtCore import QSettings, pyqtSignal
 from PyQt5.QtWidgets import QLabel, QGridLayout, QWidget, QTreeView, QHBoxLayout, QSlider, QListView, QGroupBox, QCheckBox, QComboBox
