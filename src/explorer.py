@@ -29,17 +29,21 @@ class ZeroConfListener(object):
         # TODO : SEND A SIGNAL to CLEAR thE tREE
 
     def add_service(self, zeroconf, type, name):
+        print('Yes, a friend !!')
         info = zeroconf.get_service_info(type, name)
         name = name.split('.' + type)[0]
         port = info.port
         server = info.server
         try:
             target = 'ws://' + server + ':' + str(port)
-            device = ossia.OSCQueryDevice("Explorer for " + name, target, 9998)
+            device = ossia.OSCQueryDevice("Explorer for " + name, target, 5678)
+            print('OK, device ready')
         except RuntimeError:
+            print('Exception raised. Is it the best way?')
             target = 'http://' + server + ':' + str(port)
-            device = ossia.OSCQueryDevice("Explorer for " + name, target, 9998)
+            device = ossia.OSCQueryDevice("Explorer for " + name, target, 5678)
         # Grab the namespace with an update
+        print('update it now')
         device.update()
         description = name + ' on ' + server + ':' + str(port)
         device_item = DeviceItem(description, device)
@@ -181,14 +185,12 @@ class ZeroConfExplorer(QWidget):
         if modelIndex:
             node = self.devices_model.itemFromIndex(modelIndex).node
             if node.__class__.__name__ == 'Node':
-                # TODO INSPECT
-                for child in node.children():
-                    if child.parameter:
-                        #self.panel.add_remote(child.parameter)
-                        pass
+                for param in node.get_parameters():
+                    print('---- -Insoect a Parameter- ----', param)
+                    self.panel.add_remote(param)
                 pass
             elif node.__class__.__name__ == 'OSCQueryDevice':
+                print('---- -Insoect a Device- ----')
                 #self.device_view.setup(device=node)
-                pass
         else:
             print('no node selected')

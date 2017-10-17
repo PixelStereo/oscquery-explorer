@@ -5,11 +5,10 @@
 main script
 """
 import sys
-
 from PyQt5.QtCore import QFileInfo
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
-
+from distutils import util
 
 import os
 import sys
@@ -46,6 +45,8 @@ class MainWindow(QWidget):
         method called when the main window wants to be closed
         """
         self.writeSettings()
+        import time
+        time.sleep(1)
         closevent.accept()
 
     def readSettings(self):
