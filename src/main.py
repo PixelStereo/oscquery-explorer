@@ -36,7 +36,7 @@ class MainWindow(QWidget):
         layout = QGridLayout()
         layout.addWidget(self.explorer, 0, 0)
         self.setLayout(layout)
-        self.setMaximumSize(600, 400)
+        #self.setMaximumSize(600, 400)
         self.setWindowTitle("OSCQuery Explorer")
         self.readSettings()
 
