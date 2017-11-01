@@ -52,7 +52,9 @@ class ZeroConfListener(object):
 
         
 class DeviceItem(QStandardItem):
-    """docstring for TreeDevice"""
+    """
+    DeviceItem is the device model (MVC architecture)
+    """
     def __init__(self, description, device):
         super(DeviceItem, self).__init__(description)
         self._device = None
@@ -92,7 +94,7 @@ class DeviceItem(QStandardItem):
         
 class NodeItem(QStandardItem):
     """
-    docstring for TreeItem
+    NodeItem is a  model (MVC architecture)
     """
     def __init__(self, node):
         nickname = str(node).split('/')[-1]
@@ -183,14 +185,15 @@ class ZeroConfExplorer(QWidget):
         # we consider unique selection
         modelIndex = index[0]
         if modelIndex:
+            if self.current_remote:
+                self.panel.layout.removeWidget(self.current_remote)
+                self.current_remote.deleteLater()
+                del self.current_remote
+                self.current_remote = None
             node = self.devices_model.itemFromIndex(modelIndex).node
-            if node.__class__.__name__ == 'Node':
-                for param in node.get_parameters():
-                    print('---- -Insoect a Parameter- ----', param)
-                    self.panel.add_remote(param)
-                pass
-            elif node.__class__.__name__ == 'OSCQueryDevice':
-                print('---- -Insoect a Device- ----')
-                #self.device_view.setup(device=node)
+            if node.parameter:
+                self.current_remote = self.panel.add_remote(node.parameter)
+            else:
+                print('---- -Insoect a Node- ----', node)
         else:
             print('no node selected')
