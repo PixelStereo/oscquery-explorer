@@ -4,7 +4,7 @@
 from PyQt5.QtCore import QAbstractListModel, QModelIndex, QVariant, Qt
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QGroupBox, QListView, QGridLayout, QTreeView, QWidget, QMenu, QMainWindow, QDialog, QVBoxLayout
-from PyQt5.QtCore import QTimer, QThread
+from PyQt5.QtCore import QTimer, QThread, pyqtSignal, QObject
 
 from zeroconf import ServiceBrowser, Zeroconf
 from pxst_widgets.device_view import DeviceView
@@ -14,8 +14,11 @@ from pxst_widgets.panel import Panel
 from inspector import Inspector
 
 
-class ZeroConfListener(object):
+class ZeroConfListener(QObject):
+    add_device= pyqtSignal(ossia.OSCQueryDevice)
+    remove_device= pyqtSignal(ossia.OSCQueryDevice)
     def __init__(self, *args, **kwargs):
+        super(ZeroConfListener, self).__init__()
         self.devices_model = args[0]
 
     def remove_service(self, zeroconf, type, name):
@@ -24,6 +27,7 @@ class ZeroConfListener(object):
         for row in range(0, self.devices_model.rowCount()):
             if str(self.devices_model.item(row).name) == name:
                 device = self.devices_model.item(row)
+                self.remove_device.emit(device)
                 self.devices_model.removeRow(row)
             # TO DO : if we remove the current device, remove its tree
         # TODO : SEND A SIGNAL to CLEAR thE tREE
@@ -48,6 +52,7 @@ class ZeroConfListener(object):
         description = name + ' on ' + server + ':' + str(port)
         device_item = DeviceItem(description, device)
         self.devices_model.appendRow(device_item)
+        self.add_device.emit(device)
         print('ADDED ' + str(name))
 
         
@@ -155,8 +160,13 @@ class ZeroConfExplorer(QWidget):
         zeroconf = Zeroconf()
         # start the callback, it will create items
         listener = ZeroConfListener(self.devices_model)
+        listener.add_device.connect(self.connect_device)
         browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", listener)
         self.current_remote = None
+
+
+    def connect_device(self, device):
+        self.panel.device = device
 
     def contextual_menu(self, position):
     
