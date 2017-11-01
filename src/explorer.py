@@ -195,6 +195,6 @@ class ZeroConfExplorer(QWidget):
             if node.parameter:
                 self.current_remote = self.panel.add_remote(node.parameter)
             else:
-                print('---- -Insoect a Node- ----', node)
+                self.current_remote = self.panel.add_inspector(node)
         else:
             print('no node selected')
