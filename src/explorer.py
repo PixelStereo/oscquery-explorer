@@ -156,6 +156,7 @@ class ZeroConfExplorer(QWidget):
         # start the callback, it will create items
         listener = ZeroConfListener(self.devices_model)
         browser = ServiceBrowser(zeroconf, "_oscjson._tcp.local.", listener)
+        self.current_remote = None
 
     def contextual_menu(self, position):
     
