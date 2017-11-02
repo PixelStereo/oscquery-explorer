@@ -65,6 +65,8 @@ class DeviceItem(QStandardItem):
         self._device = None
         self.device = device
         device_item = NodeItem(description)
+        child = NodeItem(device)
+        self.appendRow(child)
         self.iterate_children(device.root_node, self)
         self.description = description
 
@@ -92,7 +94,6 @@ class DeviceItem(QStandardItem):
     def node(self):
         return self.device.root_node
 
-
     @property
     def name(self):
         return self.description.split(' ')[0]
@@ -105,7 +106,6 @@ class NodeItem(QStandardItem):
         nickname = str(node).split('/')[-1]
         super(NodeItem, self).__init__(nickname)
         self.node = node
-
 
     @property
     def root_node(self):
@@ -121,6 +121,7 @@ class NodeItem(QStandardItem):
 
     def update(self):
         self.node.update()
+
 
 class ZeroConfExplorer(QWidget):
     """
@@ -202,9 +203,12 @@ class ZeroConfExplorer(QWidget):
                 del self.current_remote
                 self.current_remote = None
             node = self.devices_model.itemFromIndex(modelIndex).node
-            if node.parameter:
-                self.current_remote = self.panel.add_remote(node.parameter)
+            if node.__class__.__name__ == 'OSCQueryDevice':
+                print('Device')
             else:
-                self.current_remote = self.panel.add_inspector(node)
+                if node.parameter:
+                    self.current_remote = self.panel.add_remote(node.parameter)
+                else:
+                    self.current_remote = self.panel.add_inspector(node)
         else:
             print('no node selected')
